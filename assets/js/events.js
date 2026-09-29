@@ -90,7 +90,7 @@ window.KFG.EVENTS = [
     "title": "Tech World: Conversations",
     "organiser": "Bit by Bit Coding",
     "organiserType": "Ground-up",
-    "cause": "arts",
+    "cause": "tech",
     "format": "Talk",
     "date": "2026-10-10",
     "start": "10:00",
