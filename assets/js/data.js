@@ -15,8 +15,17 @@ window.KFG = window.KFG || {};
     { id: 'civic', name: 'Civic talks', persona: 'Kopitiam Parliamentarian' },
     { id: 'youth', name: 'Youth', persona: 'Big Sibling' },
     { id: 'arts', name: 'Arts for good', persona: 'Void Deck Picasso' },
+    { id: 'tech', name: 'Tech for good', persona: 'Code Kaki' },
+    { id: 'inclusion', name: 'Disability & inclusion', persona: 'Inclusion Champion' },
+    { id: 'education', name: 'Education', persona: 'Kampong Cikgu' },
+    { id: 'health', name: 'Health', persona: 'Wellness Warrior' },
+    { id: 'families', name: 'Families & children', persona: 'Village Auntie' },
+    // Anything that doesn't fit: the event carries its own label (causeLabel), e.g. "Road safety".
+    { id: 'other', name: 'Other', persona: 'All-rounder Kaypoh' },
   ];
   K.causeName = (id) => (K.CAUSES.find((c) => c.id === id) || { name: id }).name;
+  // The causes people can pick as interests (everything except "Other").
+  K.PICKABLE_CAUSES = K.CAUSES.filter((c) => c.id !== 'other');
 
   // Official line colours, used only as small line badges.
   K.LINES = [
@@ -93,6 +102,27 @@ window.KFG = window.KFG || {};
       <path d="M150 140 C 260 40 420 120 380 230 C 340 340 160 330 130 260 C 110 210 110 180 150 140Z" fill="${C.t}" ${S}/>
       <circle cx="580" cy="300" r="110" fill="${C.c}" ${S}/>
       <path d="M60 420 C 160 360 240 470 340 410 S 520 360 620 430 S 760 400 790 380" fill="none" ${S} stroke-width="14"/>`,
+    tech: `<rect width="800" height="500" fill="${C.s}"/>
+      <rect x="220" y="80" width="360" height="250" rx="22" fill="${C.i}"/><rect x="246" y="106" width="308" height="198" rx="10" fill="${C.l}"/>
+      <path d="M345 165 L305 205 L345 245 M455 165 L495 205 L455 245 M420 155 L380 255" fill="none" ${S}/>
+      <path d="M150 360 H650 L610 420 H190Z" fill="${C.t}" ${S}/>`,
+    inclusion: `<rect width="800" height="500" fill="${C.l}"/>
+      <circle cx="310" cy="290" r="130" fill="${C.c}" ${S}/><circle cx="490" cy="290" r="130" fill="${C.t}" ${S}/>
+      <circle cx="400" cy="160" r="110" fill="${C.s}" ${S}/>`,
+    education: `<rect width="800" height="500" fill="${C.t}"/>
+      <path d="M400 150 C 330 110 230 110 160 140 V390 C 230 360 330 360 400 400Z" fill="${C.c}" ${S}/>
+      <path d="M400 150 C 470 110 570 110 640 140 V390 C 570 360 470 360 400 400Z" fill="${C.c}" ${S}/>
+      <path d="M210 200 C 260 185 310 185 350 200 M210 260 C 260 245 310 245 350 260 M450 200 C 490 185 540 185 590 200 M450 260 C 490 245 540 245 590 260" fill="none" ${S} stroke-width="6"/>`,
+    health: `<rect width="800" height="500" fill="${C.c}"/>
+      <path d="M340 90 h120 v110 h110 v120 h-110 v110 h-120 v-110 h-110 v-120 h110z" fill="${C.l}" ${S}/>
+      <path d="M640 380 c-30 -40 -90 -20 -70 30 c10 25 70 60 70 60 c0 0 60 -35 70 -60 c20 -50 -40 -70 -70 -30z" fill="${C.t}" ${S}/>`,
+    families: `<rect width="800" height="500" fill="${C.s}"/>
+      <circle cx="250" cy="170" r="55" fill="${C.t}" ${S}/><path d="M170 510 V330 a80 80 0 0 1 160 0 V510" fill="${C.t}" ${S}/>
+      <circle cx="550" cy="170" r="55" fill="${C.l}" ${S}/><path d="M470 510 V330 a80 80 0 0 1 160 0 V510" fill="${C.l}" ${S}/>
+      <circle cx="400" cy="270" r="40" fill="${C.c}" ${S}/><path d="M345 510 V400 a55 55 0 0 1 110 0 V510" fill="${C.c}" ${S}/>`,
+    other: `<rect width="800" height="500" fill="${C.l}"/>
+      <circle cx="290" cy="250" r="130" fill="#fff" ${S} stroke-width="12"/><circle cx="510" cy="250" r="130" fill="#fff" ${S} stroke-width="12"/>
+      <circle cx="325" cy="270" r="55" fill="${C.i}"/><circle cx="545" cy="270" r="55" fill="${C.i}"/>`,
   };
   K.coverArt = (cause) =>
     'data:image/svg+xml;charset=utf-8,' +

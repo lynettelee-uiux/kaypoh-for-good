@@ -308,7 +308,8 @@
             <div class="field"><label for="f-org">Organiser</label><input class="input" id="f-org" value="${esc(d.organiser)}" placeholder="e.g. Clear Air Kakis"></div>
             <div class="field"><label for="f-orgtype">Type of group</label><select class="select" id="f-orgtype">${opt(K.ORG_TYPES, d.organiserType)}</select></div>
           </div>
-          <div class="field"><span class="label">Cause</span><div class="chips" id="f-cause">${K.CAUSES.map((c) => `<button type="button" class="chip sm ${d.cause === c.id ? 'on' : ''}" data-v="${c.id}">${esc(c.name)}</button>`).join('')}</div></div>
+          <div class="field"><span class="label">Cause</span><div class="chips" id="f-cause">${K.CAUSES.map((c) => `<button type="button" class="chip sm ${d.cause === c.id ? 'on' : ''}" data-v="${c.id}">${c.id === 'other' ? `${icon('plus')} Other` : esc(c.name)}</button>`).join('')}</div></div>
+          <div class="field" id="f-other-wrap" ${d.cause === 'other' ? '' : 'hidden'}><label for="f-other">Name the cause</label><input class="input" id="f-other" maxlength="30" value="${esc(d.causeLabel || '')}" placeholder="e.g. Road safety"><span class="hint">Keep it short. It shows as the event's tag and becomes its own filter on What's on.</span></div>
           <div class="field"><label for="f-format">Type of event</label><select class="select" id="f-format">${opt(K.FORMATS, d.format)}</select></div>
           <div class="field"><label for="f-desc">About the event</label><textarea class="textarea" id="f-desc" rows="4" placeholder="What happens, who it's for, and why it matters.">${esc(d.description)}</textarea></div>
           <div class="field"><label for="f-take">What people will take away <span class="opt">(one per line)</span></label><textarea class="textarea" id="f-take" rows="3">${esc((d.takeaways || []).join('\n'))}</textarea></div>
@@ -363,6 +364,7 @@
         registerBy: v('#f-rbdate') ? `${v('#f-rbdate')} ${v('#f-rbtime') || '23:59'}` : '',
         registrationOpen: K.qs('#f-open', root).checked, hidden: K.qs('#f-hidden', root).checked,
       });
+      if (out.cause === 'other') out.causeLabel = v('#f-other'); else delete out.causeLabel;
       return out;
     };
 
@@ -383,6 +385,8 @@
       const b = e.target.closest('[data-v]'); if (!b) return;
       d.cause = b.dataset.v;
       K.qsa('#f-cause .chip', root).forEach((c) => c.classList.toggle('on', c === b));
+      K.qs('#f-other-wrap', root).hidden = d.cause !== 'other';
+      if (d.cause === 'other') K.qs('#f-other', root).focus();
       if (!photo) paintCover();
       updatePreview();
     });
@@ -458,6 +462,7 @@
       need(raw.title.length >= 4, '#f-title', 'Give the event a name.');
       need(!!raw.organiser, '#f-org', 'Add the organiser.');
       need(!!raw.cause, null, 'Pick a cause.');
+      need(raw.cause !== 'other' || !!raw.causeLabel, '#f-other', 'Name the cause, or pick one from the list.');
       need(raw.description.length >= 20, '#f-desc', 'Describe the event in a sentence or two.');
       need(/^\d{4}-\d{2}-\d{2}$/.test(raw.date), '#f-date', 'Choose a date.');
       need(!!raw.start && !!raw.end && raw.end > raw.start, '#f-end', 'The end time needs to be after the start time.');

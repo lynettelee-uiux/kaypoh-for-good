@@ -281,7 +281,7 @@ body.has-actionbar { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px
 /* ---------- Passport ---------- */
 .level-card { display: flex; flex-direction: column; gap: 14px; }
 .level-card .lvl { font: 800 34px/1 var(--f-display); letter-spacing: -0.02em; }
-.stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.stamps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .stamp { aspect-ratio: 1; border-radius: 50%; border: 2px dashed var(--line); display: grid; place-items: center; text-align: center; font-size: 10.5px; font-weight: 700; line-height: 1.1; padding: 4px; color: var(--muted); background: var(--paper); }
 .stamp.reg { border: 2px dashed var(--ink); color: var(--ink); }
 .stamp.got { border: 2px solid var(--ink); background: var(--lime); color: var(--ink); transform: rotate(-6deg); }

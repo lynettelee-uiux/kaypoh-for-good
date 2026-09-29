@@ -5,6 +5,9 @@
   const P = (K.P = {});
   const byStart = (a, b) => S.startTime(a) - S.startTime(b);
   const upcoming = () => S.publicEvents().filter((e) => S.status(e) !== 'past').sort(byStart);
+  // Filter chips: the standard causes, then any custom causes used by upcoming events (e.g. "Road safety").
+  const causeChoices = () => [...K.PICKABLE_CAUSES.map((c) => [c.id, c.name]),
+    ...[...new Set(upcoming().filter((e) => e.cause === 'other').map((e) => e.causeName))].sort().map((n) => ['other:' + n, n])];
 
   /* ---------- Email recommendations opt-in ---------- */
   // Tracking works without this; it only adds email recommendations. Hidden until the Google Form is connected.
@@ -71,7 +74,7 @@
         </div>
         <div class="hero-art d-only" aria-hidden="true">
           ${art.length
-            ? art.map((e, i) => `<a class="hero-card hc${i}" href="#/event/${e.id}" tabindex="-1">${K.cover(e.cover)}<span class="tag">${esc(K.causeName(e.cause))}</span><b>${esc(e.title)}</b></a>`).join('')
+            ? art.map((e, i) => `<a class="hero-card hc${i}" href="#/event/${e.id}" tabindex="-1">${K.cover(e.cover)}<span class="tag">${esc(e.causeName)}</span><b>${esc(e.title)}</b></a>`).join('')
             : ['environment', 'heritage', 'food-rescue'].map((c, i) => `<div class="hero-card hc${i}">${K.cover({ src: K.coverArt(c) })}<span class="tag">${esc(K.causeName(c))}</span><b>Events coming soon</b></div>`).join('')}
           <span class="hero-eyes">${K.eyes()}</span>
         </div>
@@ -84,7 +87,7 @@
       </section>
       <section class="stack">
         <h2>Nosy about something?</h2>
-        <div class="chips">${K.CAUSES.map((c) => `<button class="chip sm" data-cause="${c.id}">${esc(c.name)}</button>`).join('')}</div>
+        <div class="chips">${causeChoices().map(([v, l]) => `<button class="chip sm" data-cause="${esc(v)}">${esc(l)}</button>`).join('')}</div>
       </section>
       <section class="stack">
         <h2>How it works</h2>
@@ -111,7 +114,7 @@
     root.innerHTML = `<div class="page narrow">
       <div class="topbar"><button class="icon-btn" data-back aria-label="Back">${icon('arrowLeft')}</button><a class="textlink" href="#/discover" data-skip>Skip for now</a></div>
       <div class="stack" style="gap:8px"><h1>What makes you kaypoh?</h1><p class="muted" style="font-size:17px">Pick the causes you want to hear about.</p></div>
-      <div class="chips" id="ob-causes">${K.CAUSES.map((c) => `<button class="chip" data-v="${c.id}" aria-pressed="false">${esc(c.name)}</button>`).join('')}</div>
+      <div class="chips" id="ob-causes">${K.PICKABLE_CAUSES.map((c) => `<button class="chip" data-v="${c.id}" aria-pressed="false">${esc(c.name)}</button>`).join('')}</div>
       <div class="stack" style="gap:8px"><h2>Where do you usually hang out?</h2><p class="muted">We'll show what's on near your MRT line.</p></div>
       <div class="chips" id="ob-lines">${K.LINES.map((l) => `<button class="chip" data-v="${l.id}" aria-pressed="false">${esc(l.name)}</button>`).join('')}</div>
       <div class="stack" style="gap:10px;margin-top:10px">
@@ -155,6 +158,7 @@
   function applyFilters(list) {
     const F = K.filters, u = S.user(), today = K.todaySG();
     if (F.cause === 'foryou') list = list.filter((e) => u.causes.includes(e.cause));
+    else if (F.cause.startsWith('other:')) list = list.filter((e) => e.cause === 'other' && e.causeName === F.cause.slice(6));
     else if (F.cause !== 'all') list = list.filter((e) => e.cause === F.cause);
     if (F.line === 'mine') list = list.filter((e) => e.lines.some((l) => u.lines.includes(l)));
     else if (F.line !== 'any') list = list.filter((e) => e.lines.includes(F.line));
@@ -167,7 +171,7 @@
     }
     const q = F.q.trim().toLowerCase();
     if (q) {
-      list = list.filter((e) => [e.title, e.desc, e.venue, e.address, e.mrt, e.format, K.causeName(e.cause), (S.org(e.orgId) || {}).name, ...e.lines.map(K.lineName)]
+      list = list.filter((e) => [e.title, e.desc, e.venue, e.address, e.mrt, e.format, e.causeName, (S.org(e.orgId) || {}).name, ...e.lines.map(K.lineName)]
         .join(' ').toLowerCase().includes(q));
     }
     return list;
@@ -207,7 +211,7 @@
       K.qsa('[data-mode]', root).forEach((b) => { b.classList.toggle('on', b.dataset.mode === F.mode); b.setAttribute('aria-selected', b.dataset.mode === F.mode); });
       // Phones show one filter group at a time (tabs); desktop shows both.
       K.qsa('[data-group]', root).forEach((g) => g.classList.toggle('is-off', g.dataset.group !== F.mode));
-      const causeOpts = [...(u.causes.length ? [['foryou', 'For you']] : []), ['all', 'All'], ...K.CAUSES.map((c) => [c.id, c.name])];
+      const causeOpts = [...(u.causes.length ? [['foryou', 'For you']] : []), ['all', 'All'], ...causeChoices()];
       K.qs('#chips-cause', root).innerHTML = causeOpts.map(([v, l]) => `<button class="chip ${F.cause === v ? 'on' : ''}" data-cause="${v}">${esc(l)}</button>`).join('');
       const lineOpts = [...(u.lines.length ? [['mine', 'My lines']] : []), ['any', 'Anywhere'], ...K.LINES.map((l) => [l.id, l.name])];
       K.qs('#chips-line', root).innerHTML = lineOpts.map(([v, l]) => `<button class="chip ${F.line === v ? 'on' : ''}" data-line="${v}">${esc(l)}</button>`).join('');
@@ -215,7 +219,7 @@
 
       const res = applyFilters(upcoming());
       const bits = [];
-      if (F.cause !== 'all') bits.push(F.cause === 'foryou' ? 'your causes' : K.causeName(F.cause));
+      if (F.cause !== 'all') bits.push(F.cause === 'foryou' ? 'your causes' : F.cause.startsWith('other:') ? F.cause.slice(6) : K.causeName(F.cause));
       if (F.line !== 'any') bits.push(F.line === 'mine' ? 'your lines' : `${K.lineName(F.line)} line`);
       if (F.when !== 'any') bits.push(WHEN.find((w) => w[0] === F.when)[1].toLowerCase());
       if (F.q.trim()) bits.push(`“${F.q.trim()}”`);
@@ -267,7 +271,7 @@
     if (mine) primary = `<a class="btn btn-primary" href="#/ticket/${mine.id}">${icon('check')} You're going</a>`;
     else if (st === 'open') primary = `<a class="btn btn-primary" href="${esc(ev.signupLink)}" target="_blank" rel="noopener" data-signup>Onz, I'm going ${icon('arrowRight')}</a>`;
     else primary = `<button class="btn btn-primary" disabled>${{ soon: 'Sign-ups opening soon', closed: 'Sign-ups closed', past: 'Event ended' }[st]}</button>`;
-    const more = upcoming().filter((e) => e.cause === ev.cause && e.id !== ev.id).slice(0, 3);
+    const more = upcoming().filter((e) => e.causeName === ev.causeName && e.id !== ev.id).slice(0, 3);
 
     root.innerHTML = `<div class="page">
       <div class="topbar">
@@ -280,7 +284,7 @@
       <div class="detail">
       <div class="d-head stack-lg">
         ${K.cover(ev.cover)}
-        <div class="tags"><span class="tag">${esc(K.causeName(ev.cause))}</span><span class="tag outline">${esc(ev.format)}</span>${K.statusTags(ev)}</div>
+        <div class="tags"><span class="tag">${esc(ev.causeName)}</span><span class="tag outline">${esc(ev.format)}</span>${K.statusTags(ev)}</div>
         <h1 class="ev-title">${esc(ev.title)}</h1>
         <div class="org-row"><div class="avatar">${esc(K.initials(org.name))}</div><div><b>${esc(org.name)}</b><p class="muted small">${esc(org.type)}</p></div></div>
       </div>
@@ -305,7 +309,7 @@
         <button class="btn btn-block m-only" data-share>${icon('share')} Share this event</button>
       </div>
       </div>
-      ${more.length ? `<section class="stack"><h2>More ${esc(K.causeName(ev.cause).toLowerCase())} events</h2><div class="ev-grid">${more.map((e) => K.eventCard(e, { compact: true })).join('')}</div></section>` : ''}
+      ${more.length ? `<section class="stack"><h2>More ${esc(ev.causeName.toLowerCase())} events</h2><div class="ev-grid">${more.map((e) => K.eventCard(e, { compact: true })).join('')}</div></section>` : ''}
     </div>
     <div class="actionbar"><div class="inner">
       <button class="btn" data-share>Jio a kaki</button>
@@ -362,7 +366,7 @@
 
     let status;
     if (reg.cancelled) status = '<p class="muted">You removed this event from your list.</p>';
-    else if (reg.checkedInAt) status = `<div class="stamp got pop" style="width:96px;font-size:13px">${esc(K.causeName(ev.cause))}</div>
+    else if (reg.checkedInAt) status = `<div class="stamp got pop" style="width:96px;font-size:13px">${esc(ev.causeName)}</div>
         <p style="text-align:center"><b>You went. Stamp collected!</b></p><button class="textlink small" data-went="0">Undo</button>`;
     else if (ended) status = `<p style="text-align:center"><b>Did you make it?</b><br><span class="muted small">Tell us you went to collect your stamp and ${K.XP.attend} XP.</span></p>
         <button class="btn btn-lime" data-went="1">${icon('check')} Yes, I went</button>`;
@@ -379,7 +383,7 @@
       ${flash ? optInHTML('Want more events like this?') : ''}
       <div class="ticket">
         <div class="top">
-          <div class="tags"><span class="tag">${esc(K.causeName(ev.cause))}</span>${reg.checkedInAt ? '<span class="tag ink">Went</span>' : ''}</div>
+          <div class="tags"><span class="tag">${esc(ev.causeName)}</span>${reg.checkedInAt ? '<span class="tag ink">Went</span>' : ''}</div>
           <h2>${esc(ev.title)}</h2>
           <p class="muted">${K.fmtDate(ev.date)}, ${K.fmtTime(ev.start)} to ${K.fmtTime(ev.end)}<br>${esc(ev.venue)} · ${esc(ev.mrt)} MRT</p>
           <p class="small">Organised by <b>${esc(org.name)}</b></p>
@@ -518,7 +522,7 @@
         <div class="section-head"><h2>Picked for you</h2><a class="textlink small" href="#/discover">More</a></div>
         <div class="ev-grid">
           ${recs.map((r) => K.eventCard(r.e, { reason: r.reason, compact: true })).join('')}
-          ${stretch && !recs.some((r) => r.e.id === stretch.id) ? K.eventCard(stretch, { compact: true, reason: `Try something new: you haven't done ${K.causeName(stretch.cause).toLowerCase()} yet` }) : ''}
+          ${stretch && !recs.some((r) => r.e.id === stretch.id) ? K.eventCard(stretch, { compact: true, reason: `Try something new: you haven't done ${stretch.causeName.toLowerCase()} yet` }) : ''}
         </div>
       </section>` : ''}
       ${optInHTML()}

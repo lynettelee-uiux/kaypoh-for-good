@@ -129,7 +129,7 @@
 
   K.eventCard = (ev, opts = {}) => `<a class="card ev-card" href="#/event/${ev.id}">
       ${K.cover(ev.cover, 'card-cover')}
-      <div class="tags"><span class="tag">${esc(K.causeName(ev.cause))}</span>${K.statusTags(ev)}</div>
+      <div class="tags"><span class="tag">${esc(ev.causeName)}</span>${K.statusTags(ev)}</div>
       <h3>${esc(ev.title)}</h3>
       <p class="ev-meta">${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)} · ${esc(ev.mrt)}</p>
       <div class="ev-bottom">
@@ -141,7 +141,7 @@
   // Horizontal "happening this week" card, as in Page Sample 1.
   K.miniCard = (ev) => `<a class="card ev-card" href="#/event/${ev.id}">
       ${K.cover(ev.cover, 'card-cover')}
-      <div class="tags"><span class="tag">${esc(K.causeName(ev.cause))}</span></div>
+      <div class="tags"><span class="tag">${esc(ev.causeName)}</span></div>
       <h3 style="font-size:20px">${esc(ev.title)}</h3>
       <p class="ev-meta">${K.dayLabel(ev.date)} · ${esc(ev.mrt)}</p>
       <b class="ev-bottom">${ev.capacity} slots · <span class="muted" style="font-weight:500">${K.signupNote(ev)}</span></b>

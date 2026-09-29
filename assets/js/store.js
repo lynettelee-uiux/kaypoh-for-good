@@ -36,12 +36,16 @@
     const orgName = e.organiser || 'Kaypoh for Good';
     const orgId = 'o-' + slug(orgName);
     if (!orgs.has(orgId)) orgs.set(orgId, { id: orgId, name: orgName, type: e.organiserType || '' });
-    const cause = K.CAUSES.some((c) => c.id === e.cause) ? e.cause : 'civic';
+    // A cause outside the list (or "other" with a causeLabel) keeps its own name, e.g. "Road safety".
+    const known = e.cause !== 'other' && K.CAUSES.some((c) => c.id === e.cause);
+    const cause = known ? e.cause : 'other';
+    let causeName = known ? K.causeName(cause) : String(e.causeLabel || (e.cause && e.cause !== 'other' ? e.cause : '') || 'Other').trim();
+    causeName = causeName.charAt(0).toUpperCase() + causeName.slice(1);
     const focus = Array.isArray(e.photoFocus) ? e.photoFocus : [50, 50];
     const regBy = e.registerBy ? String(e.registerBy).trim().replace(' ', 'T') : `${K.addDays(e.date, -1)}T23:59`;
     return {
       id: slug(e.id || e.title + '-' + e.date),
-      orgId, cause,
+      orgId, cause, causeName,
       format: e.format || 'Talk',
       title: e.title,
       desc: e.description || '',
@@ -197,7 +201,7 @@
       .filter((e) => S.status(e) === 'open' && !mine.has(e.id))
       .map((e) => {
         let score = aff[e.cause] * 2;
-        let reason = aff[e.cause] > 0 ? `Because you're into ${K.causeName(e.cause)}` : '';
+        let reason = aff[e.cause] > 0 ? `Because you're into ${e.cause === 'other' ? 'causes like this' : e.causeName}` : '';
         const onLine = e.lines.find((l) => u.lines.includes(l));
         if (onLine) { score += 3; if (!reason) reason = `On your ${K.lineName(onLine)} line`; }
         if (S.needsKakis(e)) { score += 2; if (!reason) reason = 'Needs kakis to fill the room'; }
