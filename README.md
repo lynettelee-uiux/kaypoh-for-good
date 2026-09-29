@@ -1,8 +1,65 @@
-# Kaypoh for Good (phase 1 prototype)
+# Kaypoh for Good
 
-A mobile-first site for finding free, non-touristy social events in Singapore, plus a portal for ground-ups, non-profits and charities to post events and take attendance.
+A responsive website for finding free, non-touristy social events in Singapore, run by ground-ups, non-profits and charities.
 
-## Run it
+## Adding, editing and removing events (coordinator)
+
+All events live in **`assets/js/events.js`**. The top of that file has a template and instructions.
+
+- **Add:** copy the template, fill it in, and paste it between the `[ ]` brackets. Separate events with commas.
+- **Edit:** change the details.
+- **Remove:** delete the event's `{ ... }` block, or set `hidden: true` to hide it without deleting it.
+- **Sign-ups:** set `signupLink` to the organiser's own form (e.g. Google Forms). The "Onz, I'm going" button opens it in a new tab. Without a link, the event shows "Sign-ups opening soon". The organiser sees who signed up in their form's responses.
+- **Close sign-ups early:** set `registrationOpen: false`.
+- **Photos:** upload the image to `assets/images/` and set `photo: 'assets/images/your-photo.jpg'`. Without a photo, the cause's artwork is used.
+
+To update the live site on GitHub, open `assets/js/events.js` in your repository, click the pencil icon, paste in the new version and click **Commit changes**. The site updates within about 10 minutes.
+
+If an event is missing a title, date or start time, it's skipped rather than breaking the site.
+
+Organisers who want to list an event are pointed to **enquiry@sgsocialsupport.com** (set in `assets/js/data.js` as `CONTACT_EMAIL`).
+
+## Email recommendations (opt-in list in a Google Sheet)
+
+Visitors' events, interests and XP are kept only on their own device. If they want recommendation emails, they enter a name and email and tick a consent box (on the Me page, the Passport, and after they mark an event as going). Only then is anything sent to you. Rows go to your Google Form, which saves them in its Google Sheet:
+
+| Column | Example |
+| --- | --- |
+| Name | Sam |
+| Email | sam@example.com |
+| Action | Subscribed, Going, Went, Removed, Updated interests, Unsubscribed |
+| Event | Beach clean-up (Sat 18 Oct) |
+| Causes | Environment, Heritage · Lines: East-West |
+| Consent | Yes / No |
+
+Filter the sheet by **Consent = Yes** and each person's latest row before emailing. Anyone whose latest action is **Unsubscribed** should not be emailed.
+
+**Setup:** create a Google Form with six short-answer questions titled exactly as the columns above. Then send the form's pre-filled link to your developer, or fill in `K.FOLLOWUP_FORM` in `assets/js/data.js`: the `.../formResponse` address and each question's `entry.<number>`. The opt-in box stays hidden until this is filled in.
+
+## Counting visits and sign-up clicks
+
+Fill in **one** of these in `assets/js/data.js`, then upload that file. Leave both empty to turn counting off.
+
+**Google Analytics** (`K.GA_ID`)
+1. At analytics.google.com, create a property with a **Web** data stream for your GitHub Pages address.
+2. Copy the **Measurement ID** (starts with `G-`) and set `K.GA_ID = 'G-XXXXXXX';`.
+3. Visitors see a cookie banner. Analytics only runs for people who tap **Allow**, and "Cookie settings" in the footer lets them change their mind.
+4. In GA: page visits appear under **Reports → Engagement → Pages and screens** (e.g. `/event/beach-cleanup-oct`). Sign-up clicks are the **`sign_up_click`** event. To see them per event, register `event_title` as a custom dimension (**Admin → Custom definitions**). New events can take up to a day to appear in reports; use **Realtime** to check right away.
+
+**GoatCounter** (`K.GOATCOUNTER`, cookie-free, no banner needed)
+1. Sign up at goatcounter.com and choose a code, e.g. `kaypohforgood`.
+2. Set `K.GOATCOUNTER = 'kaypohforgood';`.
+3. Sign-up clicks show as events named `signup-click/<event id>`.
+
+With either one, a click means someone opened the organiser's form, not that they finished it. The organiser's form responses are the real sign-up count.
+
+## Screen sizes
+
+- **Phones (under 640px):** app-style, with a bottom tab bar and a sticky "Onz, I'm going" bar on event pages.
+- **Tablets (640–959px):** a wider column and two-up card grids with cover photos.
+- **Desktop (960px and up):** a top navigation bar, a footer and multi-column layouts.
+
+## Run it locally
 
 From the `Kaypoh for Good` folder:
 
@@ -10,54 +67,26 @@ From the `Kaypoh for Good` folder:
 python3 -m http.server 8080 --directory site
 ```
 
-Then open http://localhost:8080. Opening `index.html` directly also works, but the organiser QR scanner needs `localhost` or `https://` to use the camera.
+Then open http://localhost:8080.
 
-To try it on your phone, host the `site` folder on any static host with HTTPS (Netlify, Vercel, GitHub Pages, Cloudflare Pages). No build step.
+## What visitors can do
 
-## Screen sizes
+- Pick the causes and MRT lines they care about
+- Search and filter events by cause, MRT line and date
+- See event details, save events, and share them ("Jio a kaki")
+- Sign up on the organiser's form, then confirm on the site so the event goes into their passport (add-to-calendar included)
+- After the event, tap "Yes, I went" to collect a cause stamp and XP
+- Collect XP, levels, cause stamps and badges in their Passport, and get recommendations
 
-- **Phones (under 640px):** app-style, with a bottom tab bar and a sticky "Onz, I'm going" bar on event pages.
-- **Tablets (640–959px):** a wider column and two-up card grids with cover photos.
-- **Desktop (960px and up):** a top navigation bar with your XP, a footer, and multi-column layouts. These include a split hero on the landing page, a filter sidebar on What's on, a sticky sign-up panel on event pages, a live card preview in the organiser form, and a side-by-side attendee list.
+## Current limits
 
-## What's in it
+- **Sign-up counts aren't shown on the site.** Each organiser's form holds its own responses, so the site shows slot numbers instead of "kakis going".
+- **Attendance is on the honour system.** Visitors tap "Yes, I went" themselves; there's no ticket scanning at the door.
+- **Visitors' interests, saved events and XP live in their own browser.** They're lost if they clear site data or switch devices.
+- **Organisers can't log in.** The coordinator adds events by editing `events.js`.
 
-**For participants**
-- Landing, then a 30-second interest picker (causes + MRT lines)
-- What's on: search, filter by cause or MRT line ("Near me"), and by date
-- Event page: cover photo, organiser, date/time, venue and MRT, register-by deadline, slots and crowd bar, takeaways, "good to know", share ("Jio a kaki") and save
-- Sign-up: name, email, SG mobile, optional age group, up to 2 organiser questions, consent
-- QR ticket with a typed backup code, add-to-calendar (.ics), cancel to free up a spot
-- Passport (gamification): XP and levels, cause stamps, badges, a monthly quest, a "kaypoh profile" of your interests, and recommendations including a "try something new" pick
+The full organiser portal from the prototype is saved in `../phase-2-reference/` (outside the `site` folder, so it isn't published). That covers the dashboard, event form with photo repositioning, attendee list, CSV export and QR check-in. It can be brought back once there's a backend with logins.
 
-**For organisers** (`#/org`)
-- Pick a sample group or register a new one
-- Dashboard with Interested / Going / Slots per event, and Upcoming / Drafts / Past tabs
-- Event form: upload a cover photo, then drag to reposition and zoom. Or use built-in artwork for the cause
-- Close or reopen registration at any time. It also closes on its own at the deadline or when full
-- Attendee list with search, manual "mark present", answers to custom questions, CSV export
-- QR scanner for check-in (camera), with typed-code and scan-from-photo fallbacks
+## For developers
 
-## Code map
-
-| File | What it does |
-| --- | --- |
-| `assets/js/data.js` | Causes, MRT lines, levels, badges, sample organisers and events |
-| `assets/js/store.js` | All data reads and writes (localStorage in phase 1) |
-| `assets/js/ui.js` | Shared pieces: icons, cards, share sheet, QR, calendar file, image resize |
-| `assets/js/participant.js` | Participant screens |
-| `assets/js/organiser.js` | Organiser screens and scanner |
-| `assets/js/app.js` | Hash router |
-| `assets/css/styles.css` | Styles, using the tokens from `1. Visual References/Overview.png` |
-
-## Phase 1 limits, and what phase 2 needs
-
-- **Data lives in each browser.** An event posted on one phone won't appear on another phone yet, and an organiser can only scan tickets made in the same browser. The next step is a real backend (e.g. Supabase or Firebase). Only `store.js` needs to change; the screens call its functions and never touch storage directly.
-- **No organiser login yet.** Anyone can pick a group. Add accounts, and ideally verify groups (UEN / charity number), before launch.
-- **No emails.** Tickets are shown on screen only. Phase 2: send a confirmation email with the QR, plus reminders.
-- **Photos are stored in the browser**, resized to 1400px. Move them to file storage with the backend.
-- **Payments:** all events are free for now, as agreed.
-- **Personal data:** sign-ups collect name, email and mobile. Before launch, add a privacy notice and a retention policy that follow the PDPA.
-- The QR libraries load from the jsDelivr CDN, so you need an internet connection.
-
-In the app, **Me → Reset demo** restores the sample data. **Start fresh** clears your own history.
+When you change any file other than `events.js`, bump the `?v=` number on the file links in `index.html` so returning visitors don't get a stale cached copy.

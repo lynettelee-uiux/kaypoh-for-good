@@ -12,11 +12,8 @@
     [/^\/saved$/, P.saved],
     [/^\/passport$/, P.passport],
     [/^\/me$/, P.me],
-    [/^\/org$/, O.home],
-    [/^\/org\/new$/, O.form],
-    [/^\/org\/edit\/([\w-]+)$/, O.form],
-    [/^\/org\/event\/([\w-]+)$/, O.manage],
-    [/^\/org\/scan\/([\w-]+)$/, O.scan],
+    [/^\/organisers$/, O.contact],
+    [/^\/org(\/.*)?$/, O.contact], // old organiser links from the prototype
   ];
 
   const app = document.getElementById('app');
@@ -44,40 +41,31 @@
     K.qsa('a', tabbar).forEach((a) => a.classList.toggle('on', a.dataset.tab === opts.nav));
     cleanup = opts.cleanup || null;
 
-    if (path !== lastPath) { window.scrollTo(0, 0); lastPath = path; }
+    if (path !== lastPath) { window.scrollTo(0, 0); lastPath = path; K.trackPage(path); }
   };
 
-  // Desktop header. Participant pages link to the four main sections; organiser pages get their own links.
+  // Desktop header: the four main sections, the visitor's XP, and a link for organisers.
   const sitenav = document.getElementById('sitenav');
   function renderSiteNav(path, opts) {
     sitenav.hidden = !!opts.bare;
     if (opts.bare) return;
-    const isOrg = path.startsWith('/org');
     const link = (href, label, on) => `<a href="${href}" class="${on ? 'on' : ''}">${label}</a>`;
-    let links, right;
-    if (isOrg) {
-      const org = K.store.currentOrg();
-      links = org ? link('#/org', 'Dashboard', path === '/org') + link('#/org/new', 'Post an event', path === '/org/new') : '';
-      right = `${org ? `<span class="nav-org"><span class="avatar">${K.esc(K.initials(org.name))}</span>${K.esc(org.name)}</span><button class="textlink small" data-switch-org>Switch group</button>` : ''}
-        <a class="btn btn-sm" href="#/">Back to events</a>`;
-    } else {
-      const st = K.store.stats();
-      const nav = opts.nav || '';
-      links = link('#/discover', "What's on", nav === 'discover') + link('#/saved', 'Saved', nav === 'saved') +
-        link('#/passport', 'Passport', nav === 'passport') + link('#/me', 'Me', nav === 'me');
-      right = `<a class="xp-chip" href="#/passport" title="Your kaypoh level">Lv ${st.level.n} · <b>${st.xp} XP</b></a>
-        <a class="btn btn-sm btn-ink" href="#/org">For organisers</a>`;
-    }
+    const st = K.store.stats();
+    const nav = opts.nav || '';
+    const isOrg = opts.area === 'org';
     sitenav.innerHTML = `<div class="inner">
-      <a class="brand" href="${isOrg ? '#/org' : '#/'}">${K.eyes()}kaypoh for good${isOrg ? '<span class="tag outline" style="margin-left:4px">Organisers</span>' : ''}</a>
-      <nav aria-label="Main">${links}</nav>
-      <div class="right">${right}</div>
+      <a class="brand" href="#/">${K.eyes()}kaypoh for good</a>
+      <nav aria-label="Main">${link('#/discover', "What's on", nav === 'discover') + link('#/saved', 'Saved', nav === 'saved') +
+        link('#/passport', 'Passport', nav === 'passport') + link('#/me', 'Me', nav === 'me')}</nav>
+      <div class="right">
+        <a class="xp-chip" href="#/passport" title="Your kaypoh level">Lv ${st.level.n} · <b>${st.xp} XP</b></a>
+        <a class="btn btn-sm ${isOrg ? 'btn-lime' : 'btn-ink'}" href="#/organisers">List your event</a>
+      </div>
     </div>`;
-    const sw = sitenav.querySelector('[data-switch-org]');
-    if (sw) sw.addEventListener('click', () => { K.store.signOutOrg(); K.go('#/org'); K.render(); });
   }
 
   K.store.init();
+  K.initAnalytics();
   K.hydrateIcons(tabbar);
   document.querySelectorAll('[data-eyes]').forEach((el) => { el.outerHTML = K.eyes(); });
   window.addEventListener('hashchange', () => { K._navCount++; K.render(); });

@@ -1,4 +1,4 @@
-/* Shared UI helpers: formatting, icons, cards, share sheet, toast, QR. */
+/* Shared UI helpers: formatting, icons, cards, share sheet, toast, visitor counts. */
 (function (K) {
   'use strict';
   const S = K.store;
@@ -110,50 +110,152 @@
   K.statusTags = (ev) => {
     const st = S.status(ev);
     const t = [];
-    if (st === 'full') t.push('<span class="tag ink">Full</span>');
-    else if (st === 'closed') t.push('<span class="tag sand">Registration closed</span>');
+    if (st === 'closed') t.push('<span class="tag sand">Sign-ups closed</span>');
     else if (st === 'past') t.push('<span class="tag sand">Ended</span>');
-    else if (S.needsKakis(ev)) t.push('<span class="tag warn">Needs kakis</span>');
+    else if (st === 'soon') t.push('<span class="tag outline">Sign-ups opening soon</span>');
     else if (S.closingSoon(ev)) t.push('<span class="tag warn">Closing soon</span>');
     if (S.myRegFor(ev.id)) t.push('<span class="tag outline">You\'re going</span>');
     return t.join('');
   };
 
-  K.crowdLine = (ev) => {
-    const going = S.going(ev.id), left = ev.capacity - going;
+  // Right-hand note on cards: when sign-ups close, or why they can't happen.
+  K.signupNote = (ev) => {
     const st = S.status(ev);
-    const right = st === 'full' ? 'Full house' : st === 'past' ? `${going} went` : left <= 5 ? `Only ${left} spot${left === 1 ? '' : 's'} left` : `${left} more to fill it`;
-    return { going, left, right };
+    if (st === 'past') return 'Event ended';
+    if (st === 'closed') return 'Sign-ups closed';
+    if (st === 'soon') return 'Sign-ups opening soon';
+    return `Register by ${K.fmtRegBy(ev).split(',')[0]}`;
   };
 
-  K.eventCard = (ev, opts = {}) => {
-    const c = K.crowdLine(ev);
-    const pct = Math.min(100, Math.round((c.going / ev.capacity) * 100));
-    const hot = S.needsKakis(ev);
-    return `<a class="card ev-card" href="#/event/${ev.id}">
+  K.eventCard = (ev, opts = {}) => `<a class="card ev-card" href="#/event/${ev.id}">
       ${K.cover(ev.cover, 'card-cover')}
       <div class="tags"><span class="tag">${esc(K.causeName(ev.cause))}</span>${K.statusTags(ev)}</div>
       <h3>${esc(ev.title)}</h3>
       <p class="ev-meta">${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)} · ${esc(ev.mrt)}</p>
       <div class="ev-bottom">
-        ${opts.compact ? '' : `<div class="bar ${hot ? 'hot' : ''}"><i style="width:${pct}%"></i></div>`}
-        <div class="ev-foot"><b>${c.going} kaki${c.going === 1 ? '' : 's'} going</b><span class="muted">${c.right}</span></div>
+        <div class="ev-foot"><b>${ev.capacity} slots</b><span class="muted">${K.signupNote(ev)}</span></div>
         ${opts.reason ? `<p class="ev-reason">${K.icon('sparkle')}${esc(opts.reason)}</p>` : ''}
       </div>
     </a>`;
-  };
 
   // Horizontal "happening this week" card, as in Page Sample 1.
-  K.miniCard = (ev) => {
-    const c = K.crowdLine(ev);
-    const hot = S.needsKakis(ev);
-    return `<a class="card ev-card" href="#/event/${ev.id}">
+  K.miniCard = (ev) => `<a class="card ev-card" href="#/event/${ev.id}">
       ${K.cover(ev.cover, 'card-cover')}
       <div class="tags"><span class="tag">${esc(K.causeName(ev.cause))}</span></div>
       <h3 style="font-size:20px">${esc(ev.title)}</h3>
       <p class="ev-meta">${K.dayLabel(ev.date)} · ${esc(ev.mrt)}</p>
-      <b class="ev-bottom" style="${hot ? 'color:var(--tomato-deep)' : ''}">${hot ? `${c.left} more kakis needed` : `${c.going} kakis going`}</b>
+      <b class="ev-bottom">${ev.capacity} slots · <span class="muted" style="font-weight:500">${K.signupNote(ev)}</span></b>
     </a>`;
+
+  /* ---------- Visitor counts: Google Analytics and/or GoatCounter ---------- */
+  // Both are off until their setting in data.js is filled in.
+  // Google Analytics uses cookies, so it only starts after the visitor taps "Allow" on the cookie banner.
+  const CONSENT_KEY = 'kaypoh-for-good:analytics-consent';
+  const getConsent = () => { try { return localStorage.getItem(CONSENT_KEY); } catch (e) { return null; } };
+  const setConsent = (v) => { try { localStorage.setItem(CONSENT_KEY, v); } catch (e) { /* ignore */ } };
+  let gaReady = false;
+  const pageHit = { path: '/', title: document.title };
+
+  function startGA() {
+    if (gaReady || !K.GA_ID) return;
+    gaReady = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', K.GA_ID, { send_page_view: false });
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(K.GA_ID)}`;
+    document.head.appendChild(s);
+    sendGAPage();
+  }
+  // The site's pages live after the # in the address, so each one is sent to GA as its own page.
+  function sendGAPage() {
+    if (!gaReady) return;
+    window.gtag('event', 'page_view', {
+      page_title: pageHit.title,
+      page_location: `${location.origin}${location.pathname}#${pageHit.path}`,
+      page_path: pageHit.path,
+    });
+  }
+
+  if (K.GOATCOUNTER) {
+    const gc = document.createElement('script');
+    gc.async = true;
+    gc.src = 'https://gc.zgo.at/count.js';
+    gc.dataset.goatcounter = `https://${K.GOATCOUNTER}.goatcounter.com/count`;
+    gc.dataset.goatcounterSettings = '{"no_onload": true}';
+    document.head.appendChild(gc);
+  }
+  const gcPending = [];
+  const gcFlush = () => {
+    if (!window.goatcounter || !window.goatcounter.count) return false;
+    while (gcPending.length) window.goatcounter.count(gcPending.shift());
+    return true;
+  };
+  const gcTrack = (hit) => {
+    if (!K.GOATCOUNTER) return;
+    gcPending.push(hit);
+    if (!gcFlush()) { let tries = 0; const t = setInterval(() => { if (gcFlush() || ++tries > 20) clearInterval(t); }, 500); }
+  };
+
+  K.trackPage = (path) => {
+    pageHit.path = '/' + path.replace(/^\//, '');
+    pageHit.title = document.title;
+    gcTrack({ path: pageHit.path, title: pageHit.title });
+    sendGAPage();
+  };
+  K.trackSignup = (ev) => {
+    gcTrack({ path: `signup-click/${ev.id}`, title: `Sign-up click: ${ev.title}`, event: true });
+    if (gaReady) window.gtag('event', 'sign_up_click', { event_id: ev.id, event_title: ev.title, organiser: (S.org(ev.orgId) || {}).name || '' });
+  };
+
+  /* ---------- Email recommendations opt-in (Google Form → Google Sheet) ---------- */
+  K.followupReady = () => !!(K.FOLLOWUP_FORM && K.FOLLOWUP_FORM.action && K.FOLLOWUP_FORM.fields.email);
+  // Sends one row to the coordinator's sheet. Only for visitors who opted in (plus their "Unsubscribed" row).
+  K.followup = (action, ev) => {
+    const sub = S.subscription();
+    if (!K.followupReady() || !sub || (!sub.on && action !== 'Unsubscribed')) return;
+    const f = K.FOLLOWUP_FORM.fields, u = S.user(), aff = S.affinity();
+    const causes = K.CAUSES.filter((c) => aff[c.id] > 0).sort((a, b) => aff[b.id] - aff[a.id]).map((c) => c.name);
+    const lines = u.lines.map(K.lineName);
+    const body = new URLSearchParams();
+    const put = (k, v) => { if (f[k]) body.append(f[k], v || ''); };
+    put('name', sub.name);
+    put('email', sub.email);
+    put('action', action);
+    put('event', ev ? `${ev.title} (${K.fmtDate(ev.date)})` : S.myRegs().filter((r) => S.endTime(S.event(r.eventId)) > Date.now()).map((r) => S.event(r.eventId).title).join('; '));
+    put('causes', [causes.join(', '), lines.length ? `Lines: ${lines.join(', ')}` : ''].filter(Boolean).join(' · '));
+    put('consent', sub.on ? 'Yes' : 'No');
+    // Google Forms doesn't answer cross-site requests, so the reply can't be read; the row still arrives.
+    fetch(K.FOLLOWUP_FORM.action, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
+  };
+
+  // Cookie banner. Shown once; the choice is remembered. "Cookie settings" in the footer reopens it.
+  K.showConsent = () => {
+    if (!K.GA_ID) return;
+    const box = document.getElementById('consent');
+    box.innerHTML = `<div class="consent-inner">
+      <p class="small"><b>Can we use analytics cookies?</b> Google Analytics helps us see which events people are interested in. We don't use it for ads.</p>
+      <div class="row"><button class="btn btn-sm btn-lime" data-consent="yes">Allow</button><button class="btn btn-sm" data-consent="no">No thanks</button></div>
+    </div>`;
+    box.hidden = false;
+    K.qsa('[data-consent]', box).forEach((b) => b.addEventListener('click', () => {
+      const yes = b.dataset.consent === 'yes';
+      const was = getConsent();
+      setConsent(yes ? 'yes' : 'no');
+      box.hidden = true;
+      if (yes) startGA();
+      else if (was === 'yes') location.reload(); // stop GA for the rest of this visit
+    }));
+  };
+  K.initAnalytics = () => {
+    if (!K.GA_ID) return;
+    const link = document.getElementById('cookie-settings');
+    if (link) { link.hidden = false; link.addEventListener('click', K.showConsent); }
+    const c = getConsent();
+    if (c === 'yes') startGA();
+    else if (c !== 'no') K.showConsent();
   };
 
   K.empty = (title, body, action = '') => `<div class="empty">${K.eyes()}<h3>${title}</h3><p class="muted">${body}</p>${action}</div>`;
@@ -214,18 +316,6 @@
     });
   };
 
-  /* ---------- QR ---------- */
-  K.qrSvg = (text) => {
-    if (typeof window.qrcode !== 'function') return `<div class="empty" style="aspect-ratio:1">QR needs an internet connection. Show the code below instead.</div>`;
-    const q = window.qrcode(0, 'M');
-    q.addData(text); q.make();
-    const n = q.getModuleCount(), m = 2;
-    let d = '';
-    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m} ${r + m}h1v1h-1z`;
-    return `<svg viewBox="0 0 ${n + m * 2} ${n + m * 2}" shape-rendering="crispEdges" role="img" aria-label="Ticket QR code"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#17150F"/></svg>`;
-  };
-  K.qrPayload = (reg) => `KFG|${reg.code}|${reg.eventId}`;
-
   /* ---------- Files ---------- */
   K.downloadFile = (name, content, type) => {
     const blob = content instanceof Blob ? content : new Blob([content], { type });
@@ -241,7 +331,7 @@
     return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Kaypoh for Good//EN', 'BEGIN:VEVENT',
       `UID:${ev.id}@kaypohforgood`, `DTSTAMP:${f(Date.now())}`, `DTSTART:${f(S.startTime(ev))}`, `DTEND:${f(S.endTime(ev))}`,
       `SUMMARY:${clean(ev.title)}`, `LOCATION:${clean(ev.venue + ', ' + ev.address)}`,
-      `DESCRIPTION:${clean('Kaypoh for Good. Bring your QR ticket. ' + K.eventUrl(ev))}`,
+      `DESCRIPTION:${clean('Kaypoh for Good. Event details: ' + K.eventUrl(ev))}`,
       'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
   };
 

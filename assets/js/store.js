@@ -1,9 +1,11 @@
-/* Data layer. Phase 1 keeps everything in this browser's localStorage.
-   Every read and write the pages make goes through K.store, so phase 2 can
-   swap this file for API calls (e.g. Supabase or Firebase) without touching the views. */
+/* Data layer.
+   Events come from events.js on every page load, so everyone sees the same list.
+   Each visitor's own profile, interests, saved events and sign-ups are kept in
+   their browser's localStorage. Phase 2 can swap this file for a real backend
+   without touching the screens. */
 (function (K) {
   'use strict';
-  const KEY = 'kaypoh-for-good:v1';
+  const KEY = 'kaypoh-for-good:v2';
   const DAY = 86400000;
 
   /* ---------- Singapore dates (UTC+8, no daylight saving) ---------- */
@@ -17,198 +19,120 @@
   K.sgTime = (ymd, hm) => new Date(`${ymd}T${hm || '00:00'}:00+08:00`).getTime();
 
   const uid = (p) => p + Math.random().toString(36).slice(2, 9);
-  const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  const newCode = (taken) => {
-    let c;
-    do { c = 'KFG-' + Array.from({ length: 6 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join(''); } while (taken.has(c));
-    return c;
-  };
+  const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+  /* ---------- Events from events.js ---------- */
+  let events = [];
+  const orgs = new Map();
+
+  // Turns an entry written in events.js into the shape the screens use.
+  // Entries missing a title, date or start time are skipped, with a note in the browser console.
+  function normalise(e, i) {
+    if (!e || e.hidden) return null;
+    if (!e.title || !/^\d{4}-\d{2}-\d{2}$/.test(e.date || '') || !/^\d{1,2}:\d{2}$/.test(e.start || '')) {
+      console.warn(`events.js: skipped event #${i + 1} (${e.title || 'no title'}). It needs a title, a date (YYYY-MM-DD) and a start time (HH:MM).`);
+      return null;
+    }
+    const orgName = e.organiser || 'Kaypoh for Good';
+    const orgId = 'o-' + slug(orgName);
+    if (!orgs.has(orgId)) orgs.set(orgId, { id: orgId, name: orgName, type: e.organiserType || '' });
+    const cause = K.CAUSES.some((c) => c.id === e.cause) ? e.cause : 'civic';
+    const focus = Array.isArray(e.photoFocus) ? e.photoFocus : [50, 50];
+    const regBy = e.registerBy ? String(e.registerBy).trim().replace(' ', 'T') : `${K.addDays(e.date, -1)}T23:59`;
+    return {
+      id: slug(e.id || e.title + '-' + e.date),
+      orgId, cause,
+      format: e.format || 'Talk',
+      title: e.title,
+      desc: e.description || '',
+      takeaways: Array.isArray(e.takeaways) ? e.takeaways : [],
+      bring: e.goodToKnow || '',
+      date: e.date, start: e.start, end: e.end || e.start,
+      venue: e.venue || '', address: e.address || '', mrt: e.mrt || '',
+      lines: Array.isArray(e.lines) ? e.lines : [],
+      capacity: Math.max(1, parseInt(e.slots, 10) || 30),
+      regBy: /T\d{1,2}:\d{2}$/.test(regBy) ? regBy : regBy + 'T23:59',
+      regOpen: e.registrationOpen !== false,
+      signupLink: /^https?:\/\//i.test(String(e.signupLink || '').trim()) ? String(e.signupLink).trim() : '',
+      status: 'published',
+      questions: (Array.isArray(e.questions) ? e.questions : []).slice(0, 2).filter((q) => q && q.q),
+      cover: e.photo ? { src: e.photo, x: focus[0], y: focus[1], zoom: 1 } : { src: K.coverArt(cause), x: 50, y: 50, zoom: 1 },
+      baseInterested: 0,
+    };
+  }
+
+  /* ---------- This visitor's own data ---------- */
+  const blankUser = () => ({ profile: {}, causes: [], lines: [], onboarded: false, saved: [], shared: [] });
   let state = null;
 
-  function seed() {
-    const today = K.todaySG();
-    const s = {
-      orgs: K.SEED_ORGS.map((o) => ({ ...o, sample: true })),
-      events: [],
-      registrations: [],
-      user: { profile: {}, causes: [], lines: [], onboarded: false, saved: [], shared: [] },
-      session: { orgId: null },
-      demo: true,
-    };
-    const codes = new Set();
-    let nameIdx = 0;
-    const me = K.SEED_ME;
-
-    K.SEED_EVENTS.forEach((e, i) => {
-      const date = K.addDays(today, e.day);
-      const ev = {
-        id: e.id, orgId: e.org, cause: e.cause, format: e.format, title: e.title, desc: e.desc,
-        takeaways: e.takeaways, bring: e.bring, date, start: e.start, end: e.end,
-        venue: e.venue, address: e.address, mrt: e.mrt, lines: e.lines,
-        capacity: e.capacity, regBy: `${K.addDays(today, e.regByDay)}T${e.regByTime}`,
-        regOpen: true, status: 'published', questions: e.questions,
-        cover: { src: K.coverArt(e.cause), x: 50, y: 50, zoom: 1 },
-        baseInterested: e.interested, createdAt: Date.now() - (30 + i) * DAY,
-      };
-      s.events.push(ev);
-
-      const mine = me.regs.find((r) => r.eventId === e.id);
-      const others = e.going - (mine ? 1 : 0);
-      const past = e.day < 0;
-      for (let k = 0; k < others; k++) {
-        const name = K.SAMPLE_NAMES[nameIdx++ % K.SAMPLE_NAMES.length];
-        const code = newCode(codes); codes.add(code);
-        s.registrations.push({
-          id: uid('r'), code, eventId: ev.id, mine: false, sample: true,
-          name, email: name.toLowerCase().replace(/[^a-z]+/g, '.') + '@example.com',
-          phone: '9' + String(1000000 + ((nameIdx * 7919) % 8999999)).slice(0, 7),
-          age: K.AGE_GROUPS[1 + (nameIdx % 5)],
-          answers: ev.questions.map((q, qi) => sampleAnswer(q.q, nameIdx + qi)),
-          createdAt: K.sgTime(ev.date, ev.start) - (2 + (k % 12)) * DAY,
-          checkedInAt: past && k % 7 !== 3 ? K.sgTime(ev.date, ev.start) + (k % 20) * 60000 : null,
-          cancelled: false,
-        });
-      }
-      if (mine) {
-        const code = newCode(codes); codes.add(code);
-        s.registrations.push({
-          id: uid('r'), code, eventId: ev.id, mine: true, sample: true, ...me.profile,
-          answers: ev.questions.map(() => ''),
-          createdAt: K.sgTime(ev.date, ev.start) - mine.daysBefore * DAY,
-          checkedInAt: mine.checkedIn ? K.sgTime(ev.date, ev.start) + 5 * 60000 : null,
-          cancelled: false, neededKakis: false,
-        });
-      }
-    });
-    s.user.profile = { ...me.profile };
-    s.user.saved = [...me.saved];
-    s.user.shared = [...me.shares];
-    return s;
-  }
-
-  function sampleAnswer(q, n) {
-    if (/^(can|do|would|have)\b/i.test(q)) return n % 3 === 0 ? 'No' : 'Yes';
-    if (/language/i.test(q)) return ['English, Hokkien', 'English, Malay', 'English, Mandarin, Cantonese', 'English, Tamil'][n % 4];
-    if (/know\?|private|topic|issue/i.test(q)) return n % 2 ? '' : K.SAMPLE_ANSWERS[n % K.SAMPLE_ANSWERS.length];
-    return K.SAMPLE_ANSWERS[n % K.SAMPLE_ANSWERS.length];
-  }
-
   function load() {
+    orgs.clear();
+    events = (K.EVENTS || []).map(normalise).filter(Boolean);
     try {
+      localStorage.removeItem('kaypoh-for-good:v1'); // demo data from the earlier prototype
       const raw = localStorage.getItem(KEY);
-      if (raw) { state = JSON.parse(raw); return; }
-    } catch (e) { /* storage blocked or corrupt: fall through to seed */ }
-    state = seed();
-    save();
+      if (raw) state = JSON.parse(raw);
+    } catch (e) { /* storage blocked or corrupt */ }
+    if (!state || !state.user) state = { user: blankUser(), registrations: [] };
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
-    catch (e) { K.toast && K.toast('This browser is out of storage space. Try a smaller photo.'); return false; }
+    catch (e) { K.toast && K.toast('This browser could not save your changes. Check that it allows site data.'); return false; }
   }
 
   const S = (K.store = {});
-
   S.init = load;
-  S.resetDemo = () => { state = seed(); save(); };
-  S.startFresh = () => {
-    state = seed();
-    state.registrations = state.registrations.filter((r) => !r.mine);
-    state.user = { profile: {}, causes: [], lines: [], onboarded: false, saved: [], shared: [] };
-    state.demo = false;
-    save();
+  S.clearMyData = () => {
+    state = { user: blankUser(), registrations: [] };
+    try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
   };
-  S.isDemo = () => !!state.demo;
 
   /* ---------- Events ---------- */
-  S.events = () => state.events;
-  S.event = (id) => state.events.find((e) => e.id === id);
-  S.publicEvents = () => state.events.filter((e) => e.status === 'published');
-  S.saveEvent = (ev) => {
-    const i = state.events.findIndex((e) => e.id === ev.id);
-    if (i >= 0) state.events[i] = ev; else state.events.push(ev);
-    return save();
-  };
-  S.newEventId = () => uid('e-');
-  S.deleteEvent = (id) => {
-    state.events = state.events.filter((e) => e.id !== id);
-    state.registrations = state.registrations.filter((r) => r.eventId !== id);
-    save();
-  };
+  S.events = () => events;
+  S.event = (id) => events.find((e) => e.id === id);
+  S.publicEvents = () => events;
+  S.org = (id) => orgs.get(id);
 
   S.startTime = (ev) => K.sgTime(ev.date, ev.start);
   S.endTime = (ev) => K.sgTime(ev.date, ev.end || ev.start);
   S.regByTime = (ev) => new Date(ev.regBy + ':00+08:00').getTime();
-  S.going = (id) => state.registrations.filter((r) => r.eventId === id && !r.cancelled).length;
   S.interested = (ev) => (ev.baseInterested || 0) + (state.user.saved.includes(ev.id) ? 1 : 0);
-  S.spotsLeft = (ev) => Math.max(0, ev.capacity - S.going(ev.id));
 
-  // One of: draft, past, closed, full, open.
+  // One of: past, closed, soon (no sign-up link yet), open.
   S.status = (ev) => {
-    if (ev.status === 'draft') return 'draft';
     if (Date.now() > S.endTime(ev)) return 'past';
     if (!ev.regOpen || Date.now() > S.regByTime(ev)) return 'closed';
-    if (S.going(ev.id) >= ev.capacity) return 'full';
+    if (!ev.signupLink) return 'soon';
     return 'open';
   };
-  S.needsKakis = (ev) => S.status(ev) === 'open' && S.going(ev.id) / ev.capacity < 0.5 && S.startTime(ev) - Date.now() < 12 * DAY;
+  // Sign-up numbers live in each organiser's own form, so the site can't tell how full an event is.
+  S.needsKakis = () => false;
   S.closingSoon = (ev) => S.status(ev) === 'open' && S.regByTime(ev) - Date.now() < 2 * DAY;
-
-  /* ---------- Organisers ---------- */
-  S.orgs = () => state.orgs;
-  S.org = (id) => state.orgs.find((o) => o.id === id);
-  S.addOrg = (o) => { const org = { id: uid('o-'), ...o }; state.orgs.push(org); save(); return org; };
-  S.currentOrg = () => S.org(state.session.orgId);
-  S.signInOrg = (id) => { state.session.orgId = id; save(); };
-  S.signOutOrg = () => { state.session.orgId = null; save(); };
-  S.orgEvents = (orgId) => state.events.filter((e) => e.orgId === orgId);
 
   /* ---------- Registrations ---------- */
   S.regs = (eventId) => state.registrations.filter((r) => r.eventId === eventId && !r.cancelled);
   S.reg = (id) => state.registrations.find((r) => r.id === id);
-  S.myRegs = () => state.registrations.filter((r) => r.mine && !r.cancelled);
+  S.myRegs = () => state.registrations.filter((r) => r.mine && !r.cancelled && S.event(r.eventId));
   S.myRegFor = (eventId) => S.myRegs().find((r) => r.eventId === eventId);
 
-  S.register = (eventId, data) => {
-    const ev = S.event(eventId);
-    if (!ev) return { error: 'This event no longer exists.' };
-    const st = S.status(ev);
-    if (st === 'full') return { error: 'Sorry, the last spot was just taken.' };
-    if (st !== 'open') return { error: 'Registration for this event has closed.' };
-    const email = data.email.trim().toLowerCase();
-    if (S.regs(eventId).some((r) => r.email.toLowerCase() === email)) return { error: 'This email is already signed up for this event.' };
-    const reg = {
-      id: uid('r'), code: newCode(new Set(state.registrations.map((r) => r.code))), eventId, mine: true,
-      name: data.name.trim(), email, phone: data.phone, age: data.age || '', answers: data.answers || [],
-      createdAt: Date.now(), checkedInAt: null, cancelled: false, neededKakis: S.needsKakis(ev),
-    };
+  // The visitor tells us they signed up on the organiser's form. Kept in this browser for their passport.
+  S.markGoing = (eventId) => {
+    const existing = S.myRegFor(eventId);
+    if (existing) return existing;
+    const reg = { id: uid('r'), eventId, mine: true, external: true, createdAt: Date.now(), checkedInAt: null, cancelled: false };
     state.registrations.push(reg);
-    if (data.remember) state.user.profile = { name: reg.name, email: reg.email, phone: reg.phone, age: reg.age };
     save();
-    return { reg };
+    return reg;
   };
+  // After the event, the visitor confirms they went (there's no door scanning without a backend).
+  S.markAttended = (regId, on) => { const r = S.reg(regId); if (r) { r.checkedInAt = on ? Date.now() : null; save(); } };
   S.cancelReg = (regId) => { const r = S.reg(regId); if (r) { r.cancelled = true; save(); } };
-
-  // Accepts a scanned QR payload ("KFG|KFG-ABC123|eventId") or a typed code ("abc123", "KFG-ABC123").
-  S.checkIn = (eventId, input) => {
-    let code = String(input || '').trim();
-    if (code.includes('|')) code = code.split('|')[1] || '';
-    code = code.toUpperCase().replace(/\s+/g, '');
-    if (!code) return { status: 'empty' };
-    if (!code.startsWith('KFG-')) code = 'KFG-' + code.replace(/^KFG/, '');
-    const reg = state.registrations.find((r) => r.code === code);
-    if (!reg) return { status: 'not-found', code };
-    if (reg.eventId !== eventId) return { status: 'wrong-event', reg, event: S.event(reg.eventId) };
-    if (reg.cancelled) return { status: 'cancelled', reg };
-    if (reg.checkedInAt) return { status: 'already', reg };
-    reg.checkedInAt = Date.now();
-    save();
-    return { status: 'ok', reg };
-  };
-  S.setCheckedIn = (regId, on) => { const r = S.reg(regId); if (r) { r.checkedInAt = on ? Date.now() : null; save(); } };
 
   /* ---------- Participant ---------- */
   S.user = () => state.user;
+  // Opt-in for email recommendations: { name, email, on, at }. Absent until the visitor fills it in.
+  S.subscription = () => state.user.subscription || null;
+  S.setSubscription = (sub) => { state.user.subscription = { ...sub, at: Date.now() }; save(); };
   S.setProfile = (p) => { state.user.profile = { ...state.user.profile, ...p }; save(); };
   S.setInterests = (causes, lines) => { state.user.causes = causes; state.user.lines = lines; state.user.onboarded = true; save(); };
   S.isSaved = (id) => state.user.saved.includes(id);
@@ -230,17 +154,17 @@
     const evOf = (r) => S.event(r.eventId);
     const attendedEvents = attended.map(evOf).filter(Boolean);
     const u = state.user;
+    const saved = u.saved.filter((id) => S.event(id));
     const st = {
       registered: regs.length,
-      upcoming: regs.filter((r) => { const e = evOf(r); return e && S.endTime(e) > Date.now(); }).length,
+      upcoming: regs.filter((r) => S.endTime(evOf(r)) > Date.now()).length,
       attended: attended.length,
       attendedCauses: new Set(attendedEvents.map((e) => e.cause)).size,
       attendedLines: new Set(attendedEvents.flatMap((e) => e.lines)).size,
       shares: u.shared.length,
-      earlyBird: regs.some((r) => { const e = evOf(r); return e && S.startTime(e) - r.createdAt >= 7 * DAY; }),
-      roomFiller: regs.some((r) => r.neededKakis),
+      earlyBird: regs.some((r) => S.startTime(evOf(r)) - r.createdAt >= 7 * DAY),
     };
-    st.xp = (u.onboarded ? K.XP.onboard : 0) + u.saved.length * K.XP.save + st.shares * K.XP.share +
+    st.xp = (u.onboarded ? K.XP.onboard : 0) + saved.length * K.XP.save + st.shares * K.XP.share +
       st.registered * K.XP.register + st.attended * K.XP.attend;
     let lvl = K.LEVELS[0];
     K.LEVELS.forEach((l) => { if (st.xp >= l.xp) lvl = l; });
@@ -254,7 +178,7 @@
   S.affinity = () => {
     const u = state.user;
     const score = Object.fromEntries(K.CAUSES.map((c) => [c.id, 0]));
-    u.causes.forEach((c) => (score[c] += 2));
+    u.causes.forEach((c) => { if (c in score) score[c] += 2; });
     u.saved.forEach((id) => { const e = S.event(id); if (e) score[e.cause] += 1; });
     S.myRegs().forEach((r) => { const e = S.event(r.eventId); if (e) score[e.cause] += r.checkedInAt ? 7 : 3; });
     return score;

@@ -541,3 +541,9 @@ input[type=range] { width: 100%; accent-color: var(--ink); }
 @media (max-width: 959px) {
   .d-only { display: none !important; }
 }
+.selectable { user-select: all; -webkit-user-select: all; }
+
+/* Cookie banner (only when Google Analytics is switched on) */
+.consent { position: fixed; left: 12px; right: 12px; bottom: calc(var(--tabbar-h) + 12px + env(safe-area-inset-bottom, 0px)); z-index: 50; display: flex; justify-content: center; }
+.consent-inner { max-width: 560px; width: 100%; background: var(--paper); border: var(--bw) solid var(--ink); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 6px 0 var(--ink); }
+@media (min-width: 960px) { .consent { bottom: 24px; left: auto; right: 24px; } .consent-inner { max-width: 420px; } }
