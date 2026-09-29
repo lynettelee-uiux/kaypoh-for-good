@@ -85,5 +85,31 @@ window.KFG.EVENTS = [
       44
     ],
     "photoZoom": 1.18
+  },
+  {
+    "title": "Tech World: Conversations",
+    "organiser": "Bit by Bit Coding",
+    "organiserType": "Ground-up",
+    "cause": "arts",
+    "format": "Talk",
+    "date": "2026-10-10",
+    "start": "10:00",
+    "end": "12:00",
+    "venue": "25 Lorong 33 Geylang, Level 3 Putian Building, Singapore 387985",
+    "address": "Ismaili CIVIC Community Space",
+    "mrt": "Aljunied",
+    "lines": [
+      "EW"
+    ],
+    "slots": 30,
+    "signupLink": "https://tally.so/r/81OqGo",
+    "description": "Conversations 2026 is Bit by Bit Coding's second fireside chat involving industry-leading experts in various fields of tech, ranging from data science to AI and software engineering. Participants will have the opportunity to ask the experts questions and learn more about day-to-day life in their interested fields of tech. We welcome all passionate and interested youths to attend the session. 💻🚀",
+    "registerBy": "2026-10-09 23:59",
+    "id": "tech-world-conversations-2026-10-10",
+    "photo": "assets/images/tech-world-conversations-2026-10-10-mumy8okm.jpg",
+    "photoFocus": [
+      50,
+      47
+    ]
   }
 ];
