@@ -54,5 +54,36 @@
    ===================================================================== */
 window.KFG = window.KFG || {};
 window.KFG.EVENTS = [
-
+  {
+    "title": "Haze Talks 1: Where It Comes From, and What We Can Actually Do",
+    "organiser": "PM.Haze",
+    "organiserType": "Charity",
+    "cause": "environment",
+    "format": "Workshop",
+    "date": "2026-10-02",
+    "start": "19:00",
+    "end": "20:00",
+    "venue": "230 Victoria Street, #04-09/10 Bugis Junction Towers",
+    "mrt": "Bugis",
+    "lines": [
+      "EW"
+    ],
+    "slots": 30,
+    "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSeEdwRURJIpzeVdST4H2aaXKOaAyeEb-Kar_RLeAcyIz6kM6A/viewform",
+    "description": "Haze is a transboundary issue that affects us in Singapore - but how much do you really know about it? From palm oil, pulp and paper industries that causes land use change that makes the forests more susceptible to fires, to the stories of farming communities who live near these fires, haze is a story of how we are connected to environmental disaster in other countries.",
+    "takeaways": [
+      "The causes of the haze",
+      "Conversations on the haze and firefighting",
+      "SG Climate Rally's sharing on regional impacts",
+      "PM.Haze's ongoing projects and steps we can take to prevent haze"
+    ],
+    "registerBy": "2026-10-01 23:59",
+    "id": "haze-talks-1-where-it-comes-from-and-what-we-can-actually-do-2026-10-02",
+    "photo": "assets/images/haze-talks-1-where-it-comes-from-and-what-we-can-actually-do-2026-10-02-mumy3ug9.jpg",
+    "photoFocus": [
+      49,
+      44
+    ],
+    "photoZoom": 1.18
+  }
 ];
