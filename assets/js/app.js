@@ -12,6 +12,9 @@
     [/^\/saved$/, P.saved],
     [/^\/passport$/, P.passport],
     [/^\/me$/, P.me],
+    [/^\/admin$/, K.A.home],
+    [/^\/admin\/new$/, K.A.form],
+    [/^\/admin\/edit\/([\w-]+)$/, K.A.form],
     [/^\/organisers$/, O.contact],
     [/^\/org(\/.*)?$/, O.contact], // old organiser links from the prototype
   ];

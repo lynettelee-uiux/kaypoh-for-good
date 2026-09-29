@@ -250,7 +250,8 @@
     }));
   };
   K.initAnalytics = () => {
-    if (!K.GA_ID) return;
+    // The coordinator page holds a GitHub key, so no third-party scripts load when it's opened directly.
+    if (!K.GA_ID || location.hash.startsWith('#/admin')) return;
     const link = document.getElementById('cookie-settings');
     if (link) { link.hidden = false; link.addEventListener('click', K.showConsent); }
     const c = getConsent();

@@ -4,7 +4,15 @@ A responsive website for finding free, non-touristy social events in Singapore, 
 
 ## Adding, editing and removing events (coordinator)
 
-All events live in **`assets/js/events.js`**. The top of that file has a template and instructions.
+**The easy way: the coordinator page.** Go to your site's address followed by `#/admin`, e.g. `https://your-username.github.io/kaypoh-for-good/#/admin`. Bookmark it; it isn't linked anywhere on the site.
+
+- The first time, unlock it with a GitHub key. The page has step-by-step instructions for making one: a fine-grained personal access token for this repository only, with **Contents: Read and write**. The key is stored only in your browser, and only if you tick "Remember". Use "Forget key on this device" on shared computers.
+- **Add an event** opens a form with photo upload, drag-to-reposition and zoom, plus a live preview. **Publish** uploads the photo and updates `events.js` on GitHub for you.
+- Each event in the list has **Edit**, **Hide / Show** and **Delete** buttons.
+- Changes go live in about 10 minutes. Every change is saved in GitHub's history (the repository's **Commits** page), so a mistake can always be undone there.
+- Keys expire (you choose when, up to a year). When yours does, make a new one the same way.
+
+**By hand:** all events live in **`assets/js/events.js`**. The top of that file has a template and instructions.
 
 - **Add:** copy the template, fill it in, and paste it between the `[ ]` brackets. Separate events with commas.
 - **Edit:** change the details.

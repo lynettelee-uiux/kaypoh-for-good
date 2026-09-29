@@ -56,7 +56,9 @@
       signupLink: /^https?:\/\//i.test(String(e.signupLink || '').trim()) ? String(e.signupLink).trim() : '',
       status: 'published',
       questions: (Array.isArray(e.questions) ? e.questions : []).slice(0, 2).filter((q) => q && q.q),
-      cover: e.photo ? { src: e.photo, x: focus[0], y: focus[1], zoom: 1 } : { src: K.coverArt(cause), x: 50, y: 50, zoom: 1 },
+      cover: e.photo
+        ? { src: e.photo, x: focus[0], y: focus[1], zoom: Math.min(3, Math.max(1, Number(e.photoZoom) || 1)) }
+        : { src: K.coverArt(cause), x: 50, y: 50, zoom: 1 },
       baseInterested: 0,
     };
   }
@@ -82,6 +84,9 @@
 
   const S = (K.store = {});
   S.init = load;
+  // Used by the coordinator page to preview an entry exactly as the site will show it.
+  S.normalise = (e) => normalise({ ...e, hidden: false }, 0);
+  S.slug = slug;
   S.clearMyData = () => {
     state = { user: blankUser(), registrations: [] };
     try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
