@@ -111,5 +111,32 @@ window.KFG.EVENTS = [
       50,
       47
     ]
+  },
+  {
+    "title": "Connecting Narratives for Change Festival 2026",
+    "organiser": "Common Ground Civic Centre",
+    "organiserType": "Non-profit",
+    "cause": "other",
+    "format": "Workshop",
+    "date": "2026-10-25",
+    "start": "08:30",
+    "end": "18:30",
+    "venue": "Common Ground Civic Centre",
+    "address": "21 Bedok North Street 1, Singapore 469659",
+    "mrt": "Bedok",
+    "lines": [
+      "EW"
+    ],
+    "slots": 30,
+    "signupLink": "https://ourcommonground.com.sg/cnfc26-festival#programme-overview",
+    "description": "Connecting Narratives for Change Festival 2026 is a one-day public event on 17 Oct 2026 at Common Ground Civic Centre, exploring the question: What do we need third spaces for?\n\nConversations, interactive workshops and shared experiences, each led by organisations and practitioners working across different social concerns in Singapore.\n\nCome for a session, or stay for the whole day. Either way, there's something here for you!",
+    "registerBy": "2026-10-16 23:59",
+    "causeLabel": "Community",
+    "id": "connecting-narratives-for-change-festival-2026-2026-10-25",
+    "photo": "assets/images/connecting-narratives-for-change-festival-2026-2026-10-25-mv3npysb.jpg",
+    "photoFocus": [
+      50,
+      13
+    ]
   }
 ];
