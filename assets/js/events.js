@@ -138,5 +138,40 @@ window.KFG.EVENTS = [
       50,
       13
     ]
+  },
+  {
+    "title": "CNFC Circle #3 - Third Spaces Need Hub & Spokes",
+    "organiser": "Common Ground",
+    "organiserType": "Ground-up",
+    "cause": "civic",
+    "format": "Talk",
+    "date": "2026-11-13",
+    "start": "16:00",
+    "end": "18:30",
+    "venue": "Temasek Shophouse, Living Room",
+    "mrt": "Dhoby Ghaut",
+    "lines": [
+      "NE",
+      "CC",
+      "NS"
+    ],
+    "slots": 30,
+    "signupLink": "https://ourcommonground.com.sg/cnfc26-circles",
+    "description": "TEMASEK SHOPHOUSE, THE FOUNDRY, COMMON GROUND CIVIC CENTRE and NATIONAL YOUTH COUNCIL SINGAPORE are different kinds of impact hubs in Singapore.  All of them bring people together to work on social concerns, whether that’s everyday citizens, impact practitioners or socially-oriented organisations. But the ways each of them started, operate and sustain themselves are fundamentally different.\n\nAnd those differences shape how each one balances two roles: being a hub, and being a spoke. A hub brings people in: it convenes, connects, and shares its space and networks. A spoke reaches out: it draws on partners, funders, communities and other hubs for what it can’t do alone. Every hub needs to be both. Too much hub, and you stop learning from others. Too much spoke, and you lose what others count on you for.",
+    "takeaways": [
+      "In this Circle, we hear from Shawn Wong (Deputy Director, Partnership Lab) Marlene Rothschild (Director, The Foundry), Hazel See (Placemaking and Community, Temasek Shophouse), Shiao-yin Kuik (Executive Director, Common Ground) on how the hubs that they lead and manage came about and what it’s taken to sustain them, including finding the balance between being a hub and a spoke.",
+      "In this session, we will:",
+      "- Hear how NYC’s Partnership Lab, The Foundry, Temasek Shophouse and Common Ground started, operate and sustain their hubs, as practitioners, with their funders, and with their community.",
+      "- Unpack “Hubs and Spokes” as a tension to navigate, not a problem to solve.",
+      "- Reflect on how the principles and practices that emerge may apply to our own work.",
+      "- Meet and connect with other practitioners through small and large group conversations."
+    ],
+    "registerBy": "2026-11-11 23:59",
+    "id": "cnfc-circle-3-third-spaces-need-hub-spokes-2026-11-13",
+    "photo": "assets/images/cnfc-circle-3-third-spaces-need-hub-spokes-2026-11-13-mvwir4iv.jpg",
+    "photoFocus": [
+      50,
+      65
+    ]
   }
 ];
