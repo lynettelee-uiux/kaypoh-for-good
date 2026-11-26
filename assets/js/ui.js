@@ -140,7 +140,7 @@
   // Card layout, same on every card: title, then date line, then location line;
   // slots and "Register by" stacked at the bottom.
   K.cardMeta = (ev) => `<div class="ev-meta"><span>${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)}</span><span>${esc(ev.mrt)}${ev.mrt ? ' MRT' : ''}</span></div>`;
-  K.cardFoot = (ev) => `<div class="ev-foot"><b>${ev.capacity ? `${ev.capacity} slots` : 'Free'}</b><span class="muted">${K.signupNote(ev)}</span></div>`;
+  K.cardFoot = (ev) => `<div class="ev-foot">${ev.capacity ? `<b>${ev.capacity} slots</b>` : ''}<span class="muted">${K.signupNote(ev)}</span></div>`;
 
   K.eventCard = (ev, opts = {}) => `<article class="card ev-card">
       ${K.cover(ev.cover, 'card-cover')}

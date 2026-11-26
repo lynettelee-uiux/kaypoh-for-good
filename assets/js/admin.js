@@ -332,7 +332,7 @@
         <section class="form-section">
           <h2>Sign-ups</h2>
           <div class="field"><label for="f-link">Organiser's sign-up form link</label><input class="input" id="f-link" type="url" inputmode="url" value="${esc(d.signupLink)}" placeholder="https://forms.gle/…"><span class="hint">Leave empty to show "Sign-ups opening soon".</span></div>
-          <div class="field"><label for="f-slots">Number of slots <span class="opt">(optional)</span></label><input class="input" id="f-slots" type="number" min="1" inputmode="numeric" value="${esc(d.slots || '')}"><span class="hint">Leave empty if places aren't limited or the organiser hasn't said. The event then shows as "Free".</span></div>
+          <div class="field"><label for="f-slots">Number of slots <span class="opt">(optional)</span></label><input class="input" id="f-slots" type="number" min="1" inputmode="numeric" value="${esc(d.slots || '')}"><span class="hint">Leave empty if the organiser hasn't said. The event then shows no slot number.</span></div>
           <div class="grid2">
             <div class="field"><label for="f-rbdate">Register by <span class="opt">(optional)</span></label><input class="input" id="f-rbdate" type="date" value="${esc(rbDate)}"></div>
             <div class="field"><label for="f-rbtime">Time</label><input class="input" id="f-rbtime" type="time" value="${esc(rbTime || '23:59')}"></div>
