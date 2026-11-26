@@ -17,7 +17,9 @@
 
    Causes (use the id on the left):
      environment, heritage, mental-health, seniors, animals,
-     migrant-workers, food-rescue, civic, youth, arts
+     migrant-workers, food-rescue, civic, youth, arts,
+     tech, inclusion, education, health, families
+   If none fit, use  cause: 'other', causeLabel: 'Road safety'  (any short name).
    MRT lines: EW, NS, CC, DT, NE, TE
    Types: Talk, Walk, Clean-up, Workshop, Volunteering, Dialogue, Circle, Social
 
@@ -171,5 +173,110 @@ window.KFG.EVENTS = [
       50,
       65
     ]
+  },
+  {
+    "id": "woodlands-christmas-carnival-volunteers-2026-12-05",
+    "title": "Woodlands Christmas Carnival: volunteer crew",
+    "organiser": "Care Corner Singapore",
+    "organiserType": "Non-profit",
+    "cause": "families",
+    "format": "Volunteering",
+    "date": "2026-12-05",
+    "start": "15:30",
+    "end": "21:00",
+    "venue": "Woodlands Sports Pavilion",
+    "address": "31 Woodlands Avenue 6, Singapore 738991",
+    "mrt": "Woodlands",
+    "lines": [
+      "NS",
+      "TE"
+    ],
+    "slots": 50,
+    "signupLink": "https://www.carecorner.org.sg/volunteer/register/?id=a0GIW000008SDVb2AO",
+    "registerBy": "2026-12-01 23:59",
+    "description": "Care Corner is throwing a Christmas carnival for families living in rental flats in Woodlands, and needs a crew to run it. Volunteers help with ushering, handing out food, managing the crowd and running the carnival activities.",
+    "takeaways": [
+      "Help families in rental flats enjoy a festive evening",
+      "See how a big community event runs behind the scenes",
+      "Meet other volunteers in the north"
+    ],
+    "goodToKnow": "Ages 15 and up. You must join an online briefing on Wed 2 Dec, 7pm to 8pm. Expect to be on your feet for most of the shift."
+  },
+  {
+    "id": "care-corner-45th-anniversary-volunteers-2026-12-12",
+    "title": "Care Corner's 45th anniversary: volunteer for the day",
+    "organiser": "Care Corner Singapore",
+    "organiserType": "Non-profit",
+    "cause": "families",
+    "format": "Volunteering",
+    "date": "2026-12-12",
+    "start": "09:00",
+    "end": "16:00",
+    "venue": "Singapore American School",
+    "mrt": "Woodlands",
+    "lines": [
+      "NS",
+      "TE"
+    ],
+    "slots": 65,
+    "signupLink": "https://www.carecorner.org.sg/volunteer/register/?id=a0GIW000009xenS2AQ",
+    "registerBy": "2026-12-07 23:59",
+    "description": "Care Corner is marking 45 years with a day to thank its volunteers, and needs extra hands to run it. The sign-up button is for event support (registration, ushering, set-up and clean-up). Care Corner is also looking for booth facilitators, photographers and first aiders; pick those roles at carecorner.org.sg/volunteer.",
+    "takeaways": [
+      "Help celebrate the people who keep a community service going",
+      "Choose a role that suits you: hosting, photography or first aid",
+      "Lunch and a volunteer T-shirt for booth and event support roles"
+    ],
+    "goodToKnow": "Ages 18 and up. Every role needs an online onboarding session on 8 or 10 Dec, 7pm to 8pm. Booth and event support volunteers should be comfortable in English and a mother tongue. Photographers bring their own camera; first aiders need valid First Aid and CPR/AED certification."
+  },
+  {
+    "id": "rifle-range-guided-walk-2026-12-19",
+    "title": "Guided walk at Rifle Range Nature Park",
+    "organiser": "National Parks Board (NParks)",
+    "organiserType": "Government agency",
+    "cause": "environment",
+    "format": "Walk",
+    "date": "2026-12-19",
+    "start": "09:30",
+    "end": "10:30",
+    "venue": "Visitor Pavilion, Rifle Range Nature Park",
+    "address": "126 Rifle Range Road",
+    "mrt": "Beauty World",
+    "lines": [
+      "DT"
+    ],
+    "description": "A free one-hour walk with an NParks guide through one of Singapore's newer nature parks, from the forest edge towards the Quarry Wetland. Registration is required and there are no walk-ins.",
+    "takeaways": [
+      "Meet the wildlife living in the park's forest and wetland",
+      "Learn how an old quarry became a home for nature",
+      "A gentle morning walk close to Beauty World"
+    ],
+    "goodToKnow": "No pets or bicycles in the park. A 700m barrier-free route links the Visitor Pavilion and the Quarry Wetland.",
+    "hidden": true
+  },
+  {
+    "id": "urban-biodiversity-walk-2026-12-26",
+    "title": "Urban Biodiversity Walk at Gardens by the Bay",
+    "organiser": "Gardens by the Bay",
+    "organiserType": "Government agency",
+    "cause": "environment",
+    "format": "Walk",
+    "date": "2026-12-26",
+    "start": "08:00",
+    "end": "09:30",
+    "venue": "Sustainability Gallery, Gardens by the Bay",
+    "address": "Right outside Gardens by the Bay MRT, Exit 1",
+    "mrt": "Gardens by the Bay",
+    "lines": [
+      "TE"
+    ],
+    "signupLink": "https://www.eventbrite.sg/e/nature-sustainability-tour-urban-biodiversity-walk-dec26-tickets-2005111462360",
+    "description": "A free early-morning walk looking for the wildlife that lives in and around the Gardens. You use binoculars to spot and identify birds and other animals, and your sightings go into the Gardens’ biodiversity records. No experience needed.",
+    "takeaways": [
+      "Spot and identify local birds and wildlife with a guide",
+      "Add your sightings to real biodiversity monitoring",
+      "See how a city garden is designed to support nature"
+    ],
+    "goodToKnow": "Ages 10 and up. No pets except guide dogs. Arrive on time; the walk may be shortened or cancelled in bad weather."
   }
 ];

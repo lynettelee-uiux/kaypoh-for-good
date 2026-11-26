@@ -296,7 +296,7 @@
         <li>${icon('clock')}<div style="${regSoon ? 'color:var(--tomato-deep);font-weight:700' : ''}">Register by ${K.fmtRegBy(ev)}</div></li>
       </ul>
       <div class="card ink crowd">
-        <div class="spread"><span class="big">${ev.capacity} slots</span>${mine ? '<span class="tag">You\'re going</span>' : ''}</div>
+        <div class="spread"><span class="big">${ev.capacity ? `${ev.capacity} slots` : 'Free to join'}</span>${mine ? '<span class="tag">You\'re going</span>' : ''}</div>
         <span class="note">${esc(note)}</span>
       </div>
       <div class="d-actions d-only">${primary}<button class="btn btn-block" data-share>${icon('share')} Jio a kaki</button></div>

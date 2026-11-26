@@ -141,7 +141,7 @@
       <h3><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
       <p class="ev-meta">${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)} · ${esc(ev.mrt)}</p>
       <div class="ev-bottom">
-        <div class="ev-foot"><b>${ev.capacity} slots</b><span class="muted">${K.signupNote(ev)}</span></div>
+        <div class="ev-foot"><b>${ev.capacity ? `${ev.capacity} slots` : 'Free'}</b><span class="muted">${K.signupNote(ev)}</span></div>
         ${opts.reason ? `<p class="ev-reason">${K.icon('sparkle')}${esc(opts.reason)}</p>` : ''}
       </div>
     </article>`;
@@ -152,7 +152,7 @@
       <div class="tags">${K.causeTag(ev)}</div>
       <h3 style="font-size:20px"><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
       <p class="ev-meta">${K.dayLabel(ev.date)} · ${esc(ev.mrt)}</p>
-      <b class="ev-bottom">${ev.capacity} slots · <span class="muted" style="font-weight:500">${K.signupNote(ev)}</span></b>
+      <b class="ev-bottom">${ev.capacity ? `${ev.capacity} slots` : 'Free'} · <span class="muted" style="font-weight:500">${K.signupNote(ev)}</span></b>
     </article>`;
 
   /* ---------- Visitor counts: Google Analytics and/or GoatCounter ---------- */

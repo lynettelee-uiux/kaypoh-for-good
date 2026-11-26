@@ -332,7 +332,7 @@
         <section class="form-section">
           <h2>Sign-ups</h2>
           <div class="field"><label for="f-link">Organiser's sign-up form link</label><input class="input" id="f-link" type="url" inputmode="url" value="${esc(d.signupLink)}" placeholder="https://forms.gle/…"><span class="hint">Leave empty to show "Sign-ups opening soon".</span></div>
-          <div class="field"><label for="f-slots">Number of slots</label><input class="input" id="f-slots" type="number" min="1" inputmode="numeric" value="${esc(d.slots)}"></div>
+          <div class="field"><label for="f-slots">Number of slots <span class="opt">(optional)</span></label><input class="input" id="f-slots" type="number" min="1" inputmode="numeric" value="${esc(d.slots || '')}"><span class="hint">Leave empty if places aren't limited or the organiser hasn't said. The event then shows as "Free".</span></div>
           <div class="grid2">
             <div class="field"><label for="f-rbdate">Register by <span class="opt">(optional)</span></label><input class="input" id="f-rbdate" type="date" value="${esc(rbDate)}"></div>
             <div class="field"><label for="f-rbtime">Time</label><input class="input" id="f-rbtime" type="time" value="${esc(rbTime || '23:59')}"></div>
@@ -469,7 +469,7 @@
       need(!!raw.venue, '#f-venue', 'Add a venue.');
       need(!!raw.mrt, '#f-mrt', 'Add the nearest MRT station.');
       need(raw.lines.length > 0, null, 'Pick at least one MRT line.');
-      need(raw.slots >= 1, '#f-slots', 'Enter the number of slots.');
+      need(!v('#f-slots') || raw.slots >= 1, '#f-slots', 'Slots should be a number above 0, or leave it empty.');
       need(!raw.signupLink || /^https?:\/\/\S+\.\S+/i.test(raw.signupLink), '#f-link', 'The sign-up link should start with https://');
       need(!raw.registerBy || raw.registerBy.replace(' ', 'T') <= `${raw.date}T${raw.start}`, '#f-rbdate', 'Sign-ups have to close before the event starts.');
       if (errs.length) { errBox.innerHTML = errs.map(esc).join('<br>'); errBox.hidden = false; errBox.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
@@ -478,6 +478,7 @@
       // Keep the file tidy: leave out empty optional fields.
       ['registerBy', 'signupLink', 'goodToKnow', 'address'].forEach((k) => { if (!raw[k]) delete raw[k]; });
       if (!raw.takeaways.length) delete raw.takeaways;
+      if (!raw.slots) delete raw.slots;
       if (raw.registrationOpen) delete raw.registrationOpen;
       if (!raw.hidden) delete raw.hidden;
       delete raw.questions;

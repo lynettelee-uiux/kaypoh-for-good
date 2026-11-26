@@ -54,7 +54,7 @@
       date: e.date, start: e.start, end: e.end || e.start,
       venue: e.venue || '', address: e.address || '', mrt: e.mrt || '',
       lines: Array.isArray(e.lines) ? e.lines : [],
-      capacity: Math.max(1, parseInt(e.slots, 10) || 30),
+      capacity: parseInt(e.slots, 10) > 0 ? parseInt(e.slots, 10) : null, // null: not limited or not stated
       regBy: /T\d{1,2}:\d{2}$/.test(regBy) ? regBy : regBy + 'T23:59',
       regOpen: e.registrationOpen !== false,
       signupLink: /^https?:\/\//i.test(String(e.signupLink || '').trim()) ? String(e.signupLink).trim() : '',
