@@ -41,11 +41,12 @@
           </section>
           <section class="stack">
             <h2>What to include</h2>
-            <ul class="takeaways">
-              ${['Event name, and your group\'s name and type', 'The cause it supports', 'Date, start and end time', 'Venue, address and nearest MRT station',
-                'Number of slots, and the last day to register', 'A few sentences about the event, and what people will take away',
-                'What to bring or wear, and accessibility notes', 'A link to your sign-up form. Google Forms works well, and you can add your own questions there',
-                'A landscape photo, at least 1200px wide (optional)'].map((t) => `<li><span class="tick">${icon('check')}</span><span>${esc(t)}</span></li>`).join('')}
+            <ul class="icon-list">
+              ${[['users', 'Event name, and your group\'s name and type'], ['heart', 'The cause it supports'], ['calendar', 'Date, start and end time'],
+                ['pin', 'Venue, address and nearest MRT station'], ['ticket', 'Number of slots, and the last day to register'],
+                ['text', 'A few sentences about the event, and what people will take away'], ['info', 'What to bring or wear, and accessibility notes'],
+                ['link', 'A link to your sign-up form. Google Forms works well, and you can add your own questions there'],
+                ['image', 'A landscape photo, at least 1200px wide (optional)']].map(([ic, t]) => `<li><span class="ic">${icon(ic)}</span><span>${esc(t)}</span></li>`).join('')}
             </ul>
           </section>
         </div>

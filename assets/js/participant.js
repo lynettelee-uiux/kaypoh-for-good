@@ -278,15 +278,15 @@
         <button class="icon-btn" data-back aria-label="Back">${icon('arrowLeft')}</button>
         <div class="row">
           <button class="icon-btn" data-share aria-label="Share">${icon('share')}</button>
-          <button class="icon-btn ${S.isSaved(ev.id) ? 'on' : ''}" data-save aria-label="Save" aria-pressed="${S.isSaved(ev.id)}">${icon('heart')}</button>
+          <button class="icon-btn ${S.isSaved(ev.id) ? 'on' : ''}" data-save aria-label="Bookmark this event" title="Bookmark" aria-pressed="${S.isSaved(ev.id)}">${icon('bookmark')}</button>
         </div>
       </div>
       <div class="detail">
       <div class="d-head stack-lg">
         ${K.cover(ev.cover)}
-        <div class="tags"><span class="tag">${esc(ev.causeName)}</span><span class="tag outline">${esc(ev.format)}</span>${K.statusTags(ev)}</div>
+        <div class="tags">${K.causeTag(ev)}${K.formatTag(ev)}${K.statusTags(ev)}</div>
         <h1 class="ev-title">${esc(ev.title)}</h1>
-        <div class="org-row"><div class="avatar">${esc(K.initials(org.name))}</div><div><b>${esc(org.name)}</b><p class="muted small">${esc(org.type)}</p></div></div>
+        <a class="org-row org-link" href="#/browse/org/${esc(ev.orgId)}"><div class="avatar">${esc(K.initials(org.name))}</div><div><b>${esc(org.name)}</b><p class="muted small">${esc(org.type)}${org.type ? ' · ' : ''}See all their events</p></div></a>
       </div>
       <aside class="d-side stack-lg">
       <ul class="card info-list" style="margin:0">
@@ -322,7 +322,7 @@
       const on = S.toggleSave(ev.id);
       e.currentTarget.classList.toggle('on', on);
       e.currentTarget.setAttribute('aria-pressed', on);
-      if (on) K.xpToast('Saved', K.XP.save); else K.toast('Removed from saved');
+      if (on) K.xpToast('Bookmarked', K.XP.save); else K.toast('Bookmark removed');
     });
     // "Onz, I'm going": count the click, let the organiser's form open in a new tab,
     // then ask here whether they finished signing up so it can go in their passport.
@@ -383,7 +383,7 @@
       ${flash ? optInHTML('Want more events like this?') : ''}
       <div class="ticket">
         <div class="top">
-          <div class="tags"><span class="tag">${esc(ev.causeName)}</span>${reg.checkedInAt ? '<span class="tag ink">Went</span>' : ''}</div>
+          <div class="tags">${K.causeTag(ev)}${reg.checkedInAt ? '<span class="tag ink">Went</span>' : ''}</div>
           <h2>${esc(ev.title)}</h2>
           <p class="muted">${K.fmtDate(ev.date)}, ${K.fmtTime(ev.start)} to ${K.fmtTime(ev.end)}<br>${esc(ev.venue)} · ${esc(ev.mrt)} MRT</p>
           <p class="small">Organised by <b>${esc(org.name)}</b></p>
@@ -432,6 +432,59 @@
     return { title: `${ev.title} · Kaypoh for Good`, nav: 'me' };
   };
 
+  /* ---------- Related events: one cause, type of event, organiser or MRT line ---------- */
+  P.browse = (root, [kind, rawValue]) => {
+    let value;
+    try { value = decodeURIComponent(rawValue); } catch (e) { value = rawValue; }
+    let title, eyebrow, match, followable = false;
+    if (kind === 'cause' && value.startsWith('other:')) {
+      title = value.slice(6); eyebrow = 'Cause';
+      match = (e) => e.cause === 'other' && e.causeName === title;
+    } else if (kind === 'cause') {
+      title = K.causeName(value); eyebrow = 'Cause';
+      match = (e) => e.cause === value;
+      followable = K.PICKABLE_CAUSES.some((c) => c.id === value);
+    } else if (kind === 'format') {
+      title = value; eyebrow = 'Type of event';
+      match = (e) => e.format === value;
+    } else if (kind === 'org') {
+      const org = S.org(value);
+      title = org ? org.name : 'Organiser'; eyebrow = (org && org.type) || 'Organiser';
+      match = (e) => e.orgId === value;
+    } else if (kind === 'line') {
+      title = `${K.lineName(value)} line`; eyebrow = 'Near the MRT line';
+      match = (e) => e.lines.includes(value);
+    }
+    const all = S.publicEvents().filter(match);
+    const live = all.filter((e) => S.status(e) !== 'past').sort(byStart);
+    const past = all.filter((e) => S.status(e) === 'past').sort(byStart).reverse();
+    const u = S.user();
+    const following = followable && u.causes.includes(value);
+
+    root.innerHTML = `<div class="page">
+      <div class="topbar"><button class="icon-btn" data-back aria-label="Back">${icon('arrowLeft')}</button></div>
+      <header class="spread" style="align-items:flex-end;flex-wrap:wrap">
+        <div><p class="muted">${esc(eyebrow)}</p><h1>${esc(title)}</h1>
+          <p class="muted small">${live.length} upcoming event${live.length === 1 ? '' : 's'}</p></div>
+        ${followable ? `<button class="btn btn-sm ${following ? 'btn-lime' : ''}" data-follow aria-pressed="${following}">${icon(following ? 'check' : 'plus')} ${following ? 'In my interests' : 'Add to my interests'}</button>` : ''}
+      </header>
+      ${live.length ? `<div class="ev-grid">${live.map((e) => K.eventCard(e)).join('')}</div>`
+        : K.empty('Nothing coming up yet', 'New events get posted every week. Check back soon, or browse everything that\'s on.', '<a class="btn btn-sm" href="#/discover">See what\'s on</a>')}
+      ${past.length ? `<section class="stack"><h2>Past events</h2><div class="ev-grid">${past.map((e) => K.eventCard(e, { compact: true })).join('')}</div></section>` : ''}
+    </div>`;
+
+    K.qs('[data-back]', root).addEventListener('click', () => K.back('#/discover'));
+    const fb = K.qs('[data-follow]', root);
+    if (fb) fb.addEventListener('click', () => {
+      const causes = following ? u.causes.filter((c) => c !== value) : [...u.causes, value];
+      S.setInterests(causes, u.lines);
+      K.followup('Updated interests');
+      K.toast(following ? `${title} removed from your interests` : `${title} added to your interests`);
+      K.render();
+    });
+    return { title: `${title} · Kaypoh for Good`, nav: 'discover' };
+  };
+
   /* ---------- Saved ---------- */
   P.saved = (root) => {
     const list = S.user().saved.map(S.event).filter(Boolean).sort(byStart);
@@ -439,7 +492,7 @@
     root.innerHTML = `<div class="page">
       <header><p class="muted">Keeping an eye on</p><h1>Saved</h1></header>
       ${live.length ? `<div class="ev-grid">${live.map((e) => K.eventCard(e)).join('')}</div>`
-        : K.empty('Nothing saved yet', 'Tap the heart on any event to keep it here.', '<a class="btn btn-sm" href="#/discover">Browse events</a>')}
+        : K.empty('Nothing saved yet', 'Tap the bookmark on any event to keep it here.', '<a class="btn btn-sm" href="#/discover">Browse events</a>')}
       ${past.length ? `<h2>Already happened</h2><div class="ev-grid">${past.map((e) => K.eventCard(e, { compact: true })).join('')}</div>` : ''}
     </div>`;
     return { title: 'Saved · Kaypoh for Good', nav: 'saved' };
@@ -553,7 +606,7 @@
       ${done.length ? `<section class="stack"><h2>Past events</h2>${done.map(row).join('')}</section>` : ''}
 
       <section class="stack"><div class="section-head"><h2>My interests</h2><a class="textlink small" href="#/onboard">Edit</a></div>
-        <div class="tags">${u.causes.map((c) => `<span class="tag">${esc(K.causeName(c))}</span>`).join('') || '<span class="muted small">No causes picked yet.</span>'}${u.lines.map((l) => `<span class="tag outline">${esc(K.lineName(l))}</span>`).join('')}</div>
+        <div class="tags">${u.causes.map((c) => `<a class="tag" href="#/browse/cause/${esc(c)}">${esc(K.causeName(c))}</a>`).join('') || '<span class="muted small">No causes picked yet.</span>'}${u.lines.map((l) => `<a class="tag outline" href="#/browse/line/${esc(l)}">${esc(K.lineName(l))}</a>`).join('')}</div>
       </section>
       </div>
       <div>

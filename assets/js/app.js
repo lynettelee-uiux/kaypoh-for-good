@@ -7,6 +7,7 @@
     [/^\/onboard$/, P.onboard],
     [/^\/discover$/, P.discover],
     [/^\/event\/([\w-]+)$/, P.event],
+    [/^\/browse\/(cause|format|org|line)\/(.+)$/, P.browse],
     [/^\/register\/([\w-]+)$/, P.register],
     [/^\/ticket\/([\w-]+)$/, P.ticket],
     [/^\/saved$/, P.saved],

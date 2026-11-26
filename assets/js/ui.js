@@ -47,6 +47,9 @@
     arrowLeft: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
     arrowRight: '<path d="M5 12h14M12 5l7 7-7 7"/>',
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+    bookmark: '<path d="M6 3h12v18l-6-4.2L6 21z"/>',
+    text: '<path d="M4 6h16M4 11h16M4 16h10"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>',
     compass: '<circle cx="12" cy="12" r="10"/><path d="M16.2 7.8l-2.1 6.3-6.3 2.1 2.1-6.3z"/>',
     award: '<circle cx="12" cy="8" r="6"/><path d="M15.5 13.2L17 22l-5-3-5 3 1.5-8.8"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>',
@@ -98,7 +101,7 @@
   /* ---------- Small pieces ---------- */
   K.lineBadges = (lines) => lines.map((l) => {
     const L = K.LINES.find((x) => x.id === l);
-    return `<span class="line-dot" style="background:${L ? L.color : '#555'}" title="${esc(K.lineName(l))} line">${esc(l)}</span>`;
+    return `<a class="line-dot" href="#/browse/line/${esc(l)}" style="background:${L ? L.color : '#555'}" title="More events near the ${esc(K.lineName(l))} line">${esc(l)}</a>`;
   }).join(' ');
 
   K.cover = (c, cls = '') => {
@@ -106,6 +109,11 @@
     const x = c.x ?? 50, y = c.y ?? 50, z = c.zoom ?? 1;
     return `<div class="cover ${cls}"><img src="${c.src}" alt="" style="object-position:${x}% ${y}%;transform:scale(${z});transform-origin:${x}% ${y}%"></div>`;
   };
+
+  /* ---------- Links to related events (#/browse/...) ---------- */
+  K.causeHref = (ev) => `#/browse/cause/${encodeURIComponent(ev.cause === 'other' ? 'other:' + ev.causeName : ev.cause)}`;
+  K.causeTag = (ev) => `<a class="tag" href="${K.causeHref(ev)}" title="More ${esc(ev.causeName.toLowerCase())} events">${esc(ev.causeName)}</a>`;
+  K.formatTag = (ev) => `<a class="tag outline" href="#/browse/format/${encodeURIComponent(ev.format)}" title="More ${esc(ev.format.toLowerCase())} events">${esc(ev.format)}</a>`;
 
   K.statusTags = (ev) => {
     const st = S.status(ev);
@@ -127,25 +135,25 @@
     return `Register by ${K.fmtRegBy(ev).split(',')[0]}`;
   };
 
-  K.eventCard = (ev, opts = {}) => `<a class="card ev-card" href="#/event/${ev.id}">
+  K.eventCard = (ev, opts = {}) => `<article class="card ev-card">
       ${K.cover(ev.cover, 'card-cover')}
-      <div class="tags"><span class="tag">${esc(ev.causeName)}</span>${K.statusTags(ev)}</div>
-      <h3>${esc(ev.title)}</h3>
+      <div class="tags">${K.causeTag(ev)}${K.statusTags(ev)}</div>
+      <h3><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
       <p class="ev-meta">${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)} · ${esc(ev.mrt)}</p>
       <div class="ev-bottom">
         <div class="ev-foot"><b>${ev.capacity} slots</b><span class="muted">${K.signupNote(ev)}</span></div>
         ${opts.reason ? `<p class="ev-reason">${K.icon('sparkle')}${esc(opts.reason)}</p>` : ''}
       </div>
-    </a>`;
+    </article>`;
 
   // Horizontal "happening this week" card, as in Page Sample 1.
-  K.miniCard = (ev) => `<a class="card ev-card" href="#/event/${ev.id}">
+  K.miniCard = (ev) => `<article class="card ev-card">
       ${K.cover(ev.cover, 'card-cover')}
-      <div class="tags"><span class="tag">${esc(ev.causeName)}</span></div>
-      <h3 style="font-size:20px">${esc(ev.title)}</h3>
+      <div class="tags">${K.causeTag(ev)}</div>
+      <h3 style="font-size:20px"><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
       <p class="ev-meta">${K.dayLabel(ev.date)} · ${esc(ev.mrt)}</p>
       <b class="ev-bottom">${ev.capacity} slots · <span class="muted" style="font-weight:500">${K.signupNote(ev)}</span></b>
-    </a>`;
+    </article>`;
 
   /* ---------- Visitor counts: Google Analytics and/or GoatCounter ---------- */
   // Both are off until their setting in data.js is filled in.
