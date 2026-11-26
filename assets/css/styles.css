@@ -263,7 +263,6 @@ body.has-actionbar { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px
 .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
 .steps li { display: flex; gap: 14px; align-items: center; font-size: 17px; }
 .steps .n { width: 44px; height: 44px; border-radius: 50%; border: var(--bw) solid var(--ink); display: grid; place-items: center; font-weight: 700; flex: none; background: var(--paper); }
-.steps li:last-child .n { background: var(--lime); }
 
 /* ---------- Ticket ---------- */
 .ticket { background: var(--paper); border: var(--bw) solid var(--ink); border-radius: var(--r-card); overflow: hidden; }
@@ -547,3 +546,19 @@ input[type=range] { width: 100%; accent-color: var(--ink); }
 .consent { position: fixed; left: 12px; right: 12px; bottom: calc(var(--tabbar-h) + 12px + env(safe-area-inset-bottom, 0px)); z-index: 50; display: flex; justify-content: center; }
 .consent-inner { max-width: 560px; width: 100%; background: var(--paper); border: var(--bw) solid var(--ink); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 6px 0 var(--ink); }
 @media (min-width: 960px) { .consent { bottom: 24px; left: auto; right: 24px; } .consent-inner { max-width: 420px; } }
+
+/* Event cards: the title is the link and stretches over the whole card; tags link to related events */
+.ev-card { position: relative; }
+.ev-card h3 a.ev-link { color: inherit; text-decoration: none; }
+.ev-card a.ev-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.ev-card a.ev-link:focus-visible { outline: none; }
+.ev-card:has(a.ev-link:focus-visible) { outline: 3px solid var(--tomato); outline-offset: 2px; }
+.ev-card .tags a { position: relative; z-index: 1; }
+a.tag, a.line-dot { text-decoration: none; }
+a.tag:hover, a.line-dot:hover { box-shadow: 0 0 0 1.5px var(--ink); }
+.org-link { text-decoration: none; color: inherit; align-self: flex-start; border-radius: 16px; }
+.org-link:hover b { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Plain bulleted list ("What to include") */
+.bullets { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; }
+.bullets li { padding-left: 4px; }
