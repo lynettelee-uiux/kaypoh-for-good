@@ -137,13 +137,18 @@
     return `Register by ${K.fmtRegBy(ev).split(',')[0]}`;
   };
 
+  // Card layout, same on every card: title, then date line, then location line;
+  // slots and "Register by" stacked at the bottom.
+  K.cardMeta = (ev) => `<div class="ev-meta"><span>${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)}</span><span>${esc(ev.mrt)}${ev.mrt ? ' MRT' : ''}</span></div>`;
+  K.cardFoot = (ev) => `<div class="ev-foot"><b>${ev.capacity ? `${ev.capacity} slots` : 'Free'}</b><span class="muted">${K.signupNote(ev)}</span></div>`;
+
   K.eventCard = (ev, opts = {}) => `<article class="card ev-card">
       ${K.cover(ev.cover, 'card-cover')}
       <div class="tags">${K.causeTag(ev)}${K.statusTags(ev)}</div>
       <h3><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
-      <p class="ev-meta">${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)} · ${esc(ev.mrt)}</p>
+      ${K.cardMeta(ev)}
       <div class="ev-bottom">
-        <div class="ev-foot"><b>${ev.capacity ? `${ev.capacity} slots` : 'Free'}</b><span class="muted">${K.signupNote(ev)}</span></div>
+        ${K.cardFoot(ev)}
         ${opts.reason ? `<p class="ev-reason">${K.icon('sparkle')}${esc(opts.reason)}</p>` : ''}
       </div>
     </article>`;
@@ -153,8 +158,8 @@
       ${K.cover(ev.cover, 'card-cover')}
       <div class="tags">${K.causeTag(ev)}</div>
       <h3 style="font-size:20px"><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
-      <p class="ev-meta">${K.dayLabel(ev.date)} · ${esc(ev.mrt)}</p>
-      <b class="ev-bottom">${ev.capacity ? `${ev.capacity} slots` : 'Free'} · <span class="muted" style="font-weight:500">${K.signupNote(ev)}</span></b>
+      ${K.cardMeta(ev)}
+      <div class="ev-bottom">${K.cardFoot(ev)}</div>
     </article>`;
 
   /* ---------- Visitor counts: Google Analytics and/or GoatCounter ---------- */
