@@ -203,6 +203,31 @@ window.KFG.EVENTS = [
     "goodToKnow": "Ages 15 and up. You must join an online briefing on Wed 2 Dec, 7pm to 8pm. Expect to be on your feet for most of the shift."
   },
   {
+    "id": "mangrove-guided-walk-pasir-ris-2026-12-05",
+    "title": "Mangrove guided walk at Pasir Ris Park",
+    "organiser": "National Parks Board (NParks)",
+    "organiserType": "Government agency",
+    "cause": "environment",
+    "format": "Walk",
+    "date": "2026-12-05",
+    "start": "09:30",
+    "end": "11:00",
+    "venue": "Pasir Ris Park, Area 2",
+    "address": "Meet near Toilet C1 and Carpark C",
+    "mrt": "Pasir Ris",
+    "lines": [
+      "EW"
+    ],
+    "signupLink": "https://www.nparks.gov.sg/visit/events/event-detail/PRP_0512/4260_Mangrove-Guided-Walk-Pasir-Ris-Park",
+    "description": "A free guided walk along the boardwalk through Pasir Ris Park's mangroves, one of the few mangrove forests left in Singapore. An NParks guide points out the animals that live between land and sea, and explains how the trees survive in salty mud.",
+    "takeaways": [
+      "Spot mudskippers, crabs and herons up close",
+      "Learn how mangrove roots breathe and hold the coast together",
+      "An easy morning walk on the boardwalk"
+    ],
+    "goodToKnow": "Free, but places are limited, so register early. Children can join with an adult."
+  },
+  {
     "id": "care-corner-45th-anniversary-volunteers-2026-12-12",
     "title": "Care Corner's 45th anniversary: volunteer for the day",
     "organiser": "Care Corner Singapore",
@@ -230,6 +255,31 @@ window.KFG.EVENTS = [
     "goodToKnow": "Ages 18 and up. Every role needs an online onboarding session on 8 or 10 Dec, 7pm to 8pm. Booth and event support volunteers should be comfortable in English and a mother tongue. Photographers bring their own camera; first aiders need valid First Aid and CPR/AED certification."
   },
   {
+    "id": "heritage-on-the-hill-fort-canning-2026-12-12",
+    "title": "Heritage on the Hill: guided tour of Fort Canning",
+    "organiser": "National Parks Board (NParks)",
+    "organiserType": "Government agency",
+    "cause": "heritage",
+    "format": "Walk",
+    "date": "2026-12-12",
+    "start": "10:00",
+    "end": "12:00",
+    "venue": "Fort Canning Park",
+    "address": "Between Hill Street, Canning Rise, Clemenceau Avenue and River Valley Road",
+    "mrt": "Fort Canning",
+    "lines": [
+      "DT"
+    ],
+    "signupLink": "https://www.nparks.gov.sg/visit/events/event-detail/FCP_HT16/4172_Heritage-on-the-Hill-Guided-Tour",
+    "description": "A free walk up Fort Canning with a volunteer guide, tracing 700 years of the hill's history: from a 14th-century royal settlement, through the colonial years, to the park it is today.",
+    "takeaways": [
+      "Hear the story of the hill from the 1300s onwards",
+      "See where archaeologists found ancient artefacts",
+      "Learn how one hill changed use again and again"
+    ],
+    "goodToKnow": "Children aged 12 and below must come with an adult. The park is wheelchair accessible from the drop-off point at the Cox Terrace roundabout."
+  },
+  {
     "id": "rifle-range-guided-walk-2026-12-19",
     "title": "Guided walk at Rifle Range Nature Park",
     "organiser": "National Parks Board (NParks)",
@@ -253,6 +303,30 @@ window.KFG.EVENTS = [
     ],
     "goodToKnow": "No pets or bicycles in the park. A 700m barrier-free route links the Visitor Pavilion and the Quarry Wetland.",
     "hidden": true
+  },
+  {
+    "id": "invasive-species-removal-dairy-farm-2026-12-19",
+    "title": "Forest restoration: remove invasive plants at Dairy Farm",
+    "organiser": "Friends of Bukit Timah Forest",
+    "organiserType": "Ground-up",
+    "cause": "environment",
+    "format": "Volunteering",
+    "date": "2026-12-19",
+    "start": "09:00",
+    "venue": "Wallace Education Centre, Dairy Farm Nature Park",
+    "address": "50 Dairy Farm Road, Singapore 679059",
+    "mrt": "Hillview",
+    "lines": [
+      "DT"
+    ],
+    "signupLink": "https://www.eventbrite.sg/e/invasive-species-management-dairy-farm-nature-park-oct-dec-2026-tickets-2002377346546",
+    "description": "Join a community group helping the forest recover by pulling out an invasive climbing yam that smothers native trees at Dairy Farm Nature Park. No experience needed; the team shows you what to look for and how to remove it.",
+    "takeaways": [
+      "Hands-on work that helps native trees grow back",
+      "Learn why invasive plants are a threat to our forests",
+      "Meet people who look after Bukit Timah’s forests"
+    ],
+    "goodToKnow": "Each person must register. Covered shoes are a must, and long sleeves and long pants are recommended. Bring at least 1 litre of water, gloves if you have them, and a change of clothes. Children under 12 must come with an adult."
   },
   {
     "id": "urban-biodiversity-walk-2026-12-26",

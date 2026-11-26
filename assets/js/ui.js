@@ -30,6 +30,8 @@
     h = h % 12 || 12;
     return m ? `${h}:${String(m).padStart(2, '0')}${ap}` : `${h}${ap}`;
   };
+  // "9:30am to 11am", or just the start time when no end time is given.
+  K.fmtTimeRange = (ev) => (ev.end && ev.end !== ev.start ? `${K.fmtTime(ev.start)} to ${K.fmtTime(ev.end)}` : K.fmtTime(ev.start));
   K.fmtRegBy = (ev) => { const [d, t] = ev.regBy.split('T'); return `${K.fmtDate(d)}, ${K.fmtTime(t)}`; };
   K.fmtClock = (ms) => {
     const d = new Date(ms + 8 * 3600000);

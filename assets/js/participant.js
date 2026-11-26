@@ -290,7 +290,7 @@
       </div>
       <aside class="d-side stack-lg">
       <ul class="card info-list" style="margin:0">
-        <li>${icon('calendar')}<div><b>${K.fmtDate(ev.date)}</b>, ${K.fmtTime(ev.start)} to ${K.fmtTime(ev.end)}</div></li>
+        <li>${icon('calendar')}<div><b>${K.fmtDate(ev.date)}</b>, ${K.fmtTimeRange(ev)}</div></li>
         <li>${icon('pin')}<div><b>${esc(ev.venue)}</b><br><span class="muted small">${esc(ev.address)}</span><br><span class="small">Near ${esc(ev.mrt)} MRT</span> ${K.lineBadges(ev.lines)}</div></li>
         <li>${icon('ticket')}<div>Free · sign up on the organiser's form</div></li>
         <li>${icon('clock')}<div style="${regSoon ? 'color:var(--tomato-deep);font-weight:700' : ''}">Register by ${K.fmtRegBy(ev)}</div></li>
@@ -385,7 +385,7 @@
         <div class="top">
           <div class="tags">${K.causeTag(ev)}${reg.checkedInAt ? '<span class="tag ink">Went</span>' : ''}</div>
           <h2>${esc(ev.title)}</h2>
-          <p class="muted">${K.fmtDate(ev.date)}, ${K.fmtTime(ev.start)} to ${K.fmtTime(ev.end)}<br>${esc(ev.venue)} · ${esc(ev.mrt)} MRT</p>
+          <p class="muted">${K.fmtDate(ev.date)}, ${K.fmtTimeRange(ev)}<br>${esc(ev.venue)} · ${esc(ev.mrt)} MRT</p>
           <p class="small">Organised by <b>${esc(org.name)}</b></p>
         </div>
         <div class="perf"></div>
