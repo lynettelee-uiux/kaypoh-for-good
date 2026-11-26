@@ -137,9 +137,8 @@ body.has-actionbar { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px
 .ev-card { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; }
 .ev-card:hover { box-shadow: 0 4px 0 var(--ink); }
 .ev-card h3 { font-size: 22px; }
-.ev-meta { color: var(--muted); font-size: 15.5px; }
-.ev-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font-size: 15px; }
-.ev-foot > * { white-space: nowrap; }
+.ev-meta { color: var(--muted); font-size: 15.5px; display: flex; flex-direction: column; gap: 2px; }
+.ev-foot { display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
 .ev-foot b { font-weight: 700; }
 .ev-reason { font-size: 13.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .ev-reason .icon { width: 16px; height: 16px; }
