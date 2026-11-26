@@ -1,0 +1,363 @@
+/* Shared UI helpers: formatting, icons, cards, share sheet, toast, visitor counts. */
+(function (K) {
+  'use strict';
+  const S = K.store;
+
+  K.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const esc = K.esc;
+  K.go = (hash) => { location.hash = hash; };
+  K.replace = (hash) => { location.replace(hash); };
+  // Go back within the app if we navigated here in-app; otherwise land on a sensible page.
+  K._navCount = 0;
+  K.back = (fallback) => { if (K._navCount > 1) history.back(); else K.go(fallback); };
+  K.qs = (sel, root = document) => root.querySelector(sel);
+  K.qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  K.initials = (name) => String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+  K.firstName = (name) => String(name || '').trim().split(/\s+/)[0] || '';
+
+  /* ---------- Formatting ---------- */
+  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  K.fmtDate = (ymd) => {
+    const [y, m, d] = ymd.split('-').map(Number);
+    const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+    return `${DAYS[wd]} ${d} ${MONTHS[m - 1]}`;
+  };
+  K.fmtTime = (hm) => {
+    if (!hm) return '';
+    let [h, m] = hm.split(':').map(Number);
+    const ap = h >= 12 ? 'pm' : 'am';
+    h = h % 12 || 12;
+    return m ? `${h}:${String(m).padStart(2, '0')}${ap}` : `${h}${ap}`;
+  };
+  K.fmtRegBy = (ev) => { const [d, t] = ev.regBy.split('T'); return `${K.fmtDate(d)}, ${K.fmtTime(t)}`; };
+  K.fmtClock = (ms) => {
+    const d = new Date(ms + 8 * 3600000);
+    return K.fmtTime(`${d.getUTCHours()}:${d.getUTCMinutes()}`);
+  };
+  K.dayLabel = (ymd) => {
+    const t = K.todaySG();
+    if (ymd === t) return 'Today';
+    if (ymd === K.addDays(t, 1)) return 'Tomorrow';
+    return K.fmtDate(ymd);
+  };
+
+  /* ---------- Icons ---------- */
+  const P = {
+    arrowLeft: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+    arrowRight: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+    heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+    bookmark: '<path d="M6 3h12v18l-6-4.2L6 21z"/>',
+    text: '<path d="M4 6h16M4 11h16M4 16h10"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>',
+    compass: '<circle cx="12" cy="12" r="10"/><path d="M16.2 7.8l-2.1 6.3-6.3 2.1 2.1-6.3z"/>',
+    award: '<circle cx="12" cy="8" r="6"/><path d="M15.5 13.2L17 22l-5-3-5 3 1.5-8.8"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>',
+    calendar: '<rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/>',
+    pin: '<path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+    ticket: '<path d="M3 7h18v3.2a2 2 0 0 0 0 3.6V17H3v-3.2a2 2 0 0 0 0-3.6z"/><path d="M9 7v10" stroke-dasharray="2 2"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+    check: '<path d="M20 6L9 17l-5-5"/>',
+    x: '<path d="M18 6L6 18M6 6l12 12"/>',
+    camera: '<path d="M3 8h3.5l2-3h7l2 3H21v12H3z"/><circle cx="12" cy="13.5" r="4"/>',
+    qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M20 20v.01M17 20h.01M14 20v.01"/>',
+    users: '<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/><path d="M16 4.2a4 4 0 0 1 0 7.6M22 21c0-3-1.7-5.2-4-6"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+    download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    sparkle: '<path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/>',
+    link: '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
+    train: '<rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 10h14M8 21l2-4M16 21l-2-4"/><circle cx="9" cy="13.5" r=".6"/><circle cx="15" cy="13.5" r=".6"/>',
+    chat: '<path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12z"/>',
+    send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
+    upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>',
+    logout: '<path d="M15 4h4v16h-4M10 17l-5-5 5-5M5 12h11"/>',
+    trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    flame: '<path d="M12 22c4 0 7-2.7 7-7 0-4-3-6-4-10-2 2-3 4-3 6-1-1-2-2-2-4-2 2-5 5-5 8 0 4.3 3 7 7 7z"/>',
+  };
+  K.icon = (name, cls = '') => `<svg class="icon ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[name] || ''}</svg>`;
+  K.eyes = (cls = '') => `<svg class="eyes ${cls}" viewBox="0 0 56 28" aria-hidden="true">
+    <circle cx="14" cy="14" r="12" fill="#fff" stroke="currentColor" stroke-width="3"/><circle cx="42" cy="14" r="12" fill="#fff" stroke="currentColor" stroke-width="3"/>
+    <circle class="pupil" cx="16" cy="15" r="5.5" fill="currentColor"/><circle class="pupil" cx="44" cy="15" r="5.5" fill="currentColor"/></svg>`;
+  K.hydrateIcons = (root = document) => K.qsa('[data-icon]', root).forEach((el) => { el.outerHTML = K.icon(el.dataset.icon); });
+
+  // The logo's eyes follow the pointer: being nosy.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.addEventListener('pointermove', (e) => {
+      K.qsa('.eyes').forEach((svg) => {
+        const r = svg.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+        const d = Math.hypot(dx, dy) || 1, m = Math.min(4, d / 40);
+        svg.querySelectorAll('.pupil').forEach((p) => { p.style.transform = `translate(${(dx / d) * m - 2}px, ${(dy / d) * m - 1}px)`; });
+      });
+    }, { passive: true });
+  }
+
+  /* ---------- Small pieces ---------- */
+  K.lineBadges = (lines) => lines.map((l) => {
+    const L = K.LINES.find((x) => x.id === l);
+    return `<a class="line-dot" href="#/browse/line/${esc(l)}" style="background:${L ? L.color : '#555'}" title="More events near the ${esc(K.lineName(l))} line">${esc(l)}</a>`;
+  }).join(' ');
+
+  K.cover = (c, cls = '') => {
+    if (!c || !c.src) return '';
+    const x = c.x ?? 50, y = c.y ?? 50, z = c.zoom ?? 1;
+    return `<div class="cover ${cls}"><img src="${c.src}" alt="" style="object-position:${x}% ${y}%;transform:scale(${z});transform-origin:${x}% ${y}%"></div>`;
+  };
+
+  /* ---------- Links to related events (#/browse/...) ---------- */
+  K.causeHref = (ev) => `#/browse/cause/${encodeURIComponent(ev.cause === 'other' ? 'other:' + ev.causeName : ev.cause)}`;
+  K.causeTag = (ev) => `<a class="tag" href="${K.causeHref(ev)}" title="More ${esc(ev.causeName.toLowerCase())} events">${esc(ev.causeName)}</a>`;
+  K.formatTag = (ev) => `<a class="tag outline" href="#/browse/format/${encodeURIComponent(ev.format)}" title="More ${esc(ev.format.toLowerCase())} events">${esc(ev.format)}</a>`;
+
+  K.statusTags = (ev) => {
+    const st = S.status(ev);
+    const t = [];
+    if (st === 'closed') t.push('<span class="tag sand">Sign-ups closed</span>');
+    else if (st === 'past') t.push('<span class="tag sand">Ended</span>');
+    else if (st === 'soon') t.push('<span class="tag outline">Sign-ups opening soon</span>');
+    else if (S.closingSoon(ev)) t.push('<span class="tag warn">Closing soon</span>');
+    if (S.myRegFor(ev.id)) t.push('<span class="tag outline">You\'re going</span>');
+    return t.join('');
+  };
+
+  // Right-hand note on cards: when sign-ups close, or why they can't happen.
+  K.signupNote = (ev) => {
+    const st = S.status(ev);
+    if (st === 'past') return 'Event ended';
+    if (st === 'closed') return 'Sign-ups closed';
+    if (st === 'soon') return 'Sign-ups opening soon';
+    return `Register by ${K.fmtRegBy(ev).split(',')[0]}`;
+  };
+
+  K.eventCard = (ev, opts = {}) => `<article class="card ev-card">
+      ${K.cover(ev.cover, 'card-cover')}
+      <div class="tags">${K.causeTag(ev)}${K.statusTags(ev)}</div>
+      <h3><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
+      <p class="ev-meta">${K.dayLabel(ev.date)}, ${K.fmtTime(ev.start)} · ${esc(ev.mrt)}</p>
+      <div class="ev-bottom">
+        <div class="ev-foot"><b>${ev.capacity} slots</b><span class="muted">${K.signupNote(ev)}</span></div>
+        ${opts.reason ? `<p class="ev-reason">${K.icon('sparkle')}${esc(opts.reason)}</p>` : ''}
+      </div>
+    </article>`;
+
+  // Horizontal "happening this week" card, as in Page Sample 1.
+  K.miniCard = (ev) => `<article class="card ev-card">
+      ${K.cover(ev.cover, 'card-cover')}
+      <div class="tags">${K.causeTag(ev)}</div>
+      <h3 style="font-size:20px"><a class="ev-link" href="#/event/${ev.id}">${esc(ev.title)}</a></h3>
+      <p class="ev-meta">${K.dayLabel(ev.date)} · ${esc(ev.mrt)}</p>
+      <b class="ev-bottom">${ev.capacity} slots · <span class="muted" style="font-weight:500">${K.signupNote(ev)}</span></b>
+    </article>`;
+
+  /* ---------- Visitor counts: Google Analytics and/or GoatCounter ---------- */
+  // Both are off until their setting in data.js is filled in.
+  // Google Analytics uses cookies, so it only starts after the visitor taps "Allow" on the cookie banner.
+  const CONSENT_KEY = 'kaypoh-for-good:analytics-consent';
+  const getConsent = () => { try { return localStorage.getItem(CONSENT_KEY); } catch (e) { return null; } };
+  const setConsent = (v) => { try { localStorage.setItem(CONSENT_KEY, v); } catch (e) { /* ignore */ } };
+  let gaReady = false;
+  const pageHit = { path: '/', title: document.title };
+
+  function startGA() {
+    if (gaReady || !K.GA_ID) return;
+    gaReady = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', K.GA_ID, { send_page_view: false });
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(K.GA_ID)}`;
+    document.head.appendChild(s);
+    sendGAPage();
+  }
+  // The site's pages live after the # in the address, so each one is sent to GA as its own page.
+  function sendGAPage() {
+    if (!gaReady) return;
+    window.gtag('event', 'page_view', {
+      page_title: pageHit.title,
+      page_location: `${location.origin}${location.pathname}#${pageHit.path}`,
+      page_path: pageHit.path,
+    });
+  }
+
+  if (K.GOATCOUNTER) {
+    const gc = document.createElement('script');
+    gc.async = true;
+    gc.src = 'https://gc.zgo.at/count.js';
+    gc.dataset.goatcounter = `https://${K.GOATCOUNTER}.goatcounter.com/count`;
+    gc.dataset.goatcounterSettings = '{"no_onload": true}';
+    document.head.appendChild(gc);
+  }
+  const gcPending = [];
+  const gcFlush = () => {
+    if (!window.goatcounter || !window.goatcounter.count) return false;
+    while (gcPending.length) window.goatcounter.count(gcPending.shift());
+    return true;
+  };
+  const gcTrack = (hit) => {
+    if (!K.GOATCOUNTER) return;
+    gcPending.push(hit);
+    if (!gcFlush()) { let tries = 0; const t = setInterval(() => { if (gcFlush() || ++tries > 20) clearInterval(t); }, 500); }
+  };
+
+  K.trackPage = (path) => {
+    pageHit.path = '/' + path.replace(/^\//, '');
+    pageHit.title = document.title;
+    gcTrack({ path: pageHit.path, title: pageHit.title });
+    sendGAPage();
+  };
+  K.trackSignup = (ev) => {
+    gcTrack({ path: `signup-click/${ev.id}`, title: `Sign-up click: ${ev.title}`, event: true });
+    if (gaReady) window.gtag('event', 'sign_up_click', { event_id: ev.id, event_title: ev.title, organiser: (S.org(ev.orgId) || {}).name || '' });
+  };
+
+  /* ---------- Email recommendations opt-in (Google Form → Google Sheet) ---------- */
+  K.followupReady = () => !!(K.FOLLOWUP_FORM && K.FOLLOWUP_FORM.action && K.FOLLOWUP_FORM.fields.email);
+  // Sends one row to the coordinator's sheet. Only for visitors who opted in (plus their "Unsubscribed" row).
+  K.followup = (action, ev) => {
+    const sub = S.subscription();
+    if (!K.followupReady() || !sub || (!sub.on && action !== 'Unsubscribed')) return;
+    const f = K.FOLLOWUP_FORM.fields, u = S.user(), aff = S.affinity();
+    const causes = K.CAUSES.filter((c) => aff[c.id] > 0).sort((a, b) => aff[b.id] - aff[a.id]).map((c) => c.name);
+    const lines = u.lines.map(K.lineName);
+    const body = new URLSearchParams();
+    const put = (k, v) => { if (f[k]) body.append(f[k], v || ''); };
+    put('name', sub.name);
+    put('email', sub.email);
+    put('action', action);
+    put('event', ev ? `${ev.title} (${K.fmtDate(ev.date)})` : S.myRegs().filter((r) => S.endTime(S.event(r.eventId)) > Date.now()).map((r) => S.event(r.eventId).title).join('; '));
+    put('causes', [causes.join(', '), lines.length ? `Lines: ${lines.join(', ')}` : ''].filter(Boolean).join(' · '));
+    put('consent', sub.on ? 'Yes' : 'No');
+    // Google Forms doesn't answer cross-site requests, so the reply can't be read; the row still arrives.
+    fetch(K.FOLLOWUP_FORM.action, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
+  };
+
+  // Cookie banner. Shown once; the choice is remembered. "Cookie settings" in the footer reopens it.
+  K.showConsent = () => {
+    if (!K.GA_ID) return;
+    const box = document.getElementById('consent');
+    box.innerHTML = `<div class="consent-inner">
+      <p class="small"><b>Can we use analytics cookies?</b> Google Analytics helps us see which events people are interested in. We don't use it for ads.</p>
+      <div class="row"><button class="btn btn-sm btn-lime" data-consent="yes">Allow</button><button class="btn btn-sm" data-consent="no">No thanks</button></div>
+    </div>`;
+    box.hidden = false;
+    K.qsa('[data-consent]', box).forEach((b) => b.addEventListener('click', () => {
+      const yes = b.dataset.consent === 'yes';
+      const was = getConsent();
+      setConsent(yes ? 'yes' : 'no');
+      box.hidden = true;
+      if (yes) startGA();
+      else if (was === 'yes') location.reload(); // stop GA for the rest of this visit
+    }));
+  };
+  K.initAnalytics = () => {
+    // The coordinator page holds a GitHub key, so no third-party scripts load when it's opened directly.
+    if (!K.GA_ID || location.hash.startsWith('#/admin')) return;
+    const link = document.getElementById('cookie-settings');
+    if (link) { link.hidden = false; link.addEventListener('click', K.showConsent); }
+    const c = getConsent();
+    if (c === 'yes') startGA();
+    else if (c !== 'no') K.showConsent();
+  };
+
+  K.empty = (title, body, action = '') => `<div class="empty">${K.eyes()}<h3>${title}</h3><p class="muted">${body}</p>${action}</div>`;
+
+  /* ---------- Toast ---------- */
+  let toastTimer;
+  K.toast = (html, ms = 2600) => {
+    const t = document.getElementById('toast');
+    t.innerHTML = html;
+    t.hidden = false;
+    t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; }, ms);
+  };
+  K.xpToast = (label, xp) => K.toast(`${esc(label)} <span class="xp">+${xp} XP</span>`);
+
+  /* ---------- Bottom sheet ---------- */
+  K.sheet = (html, onMount) => {
+    const root = document.getElementById('sheet-root');
+    root.innerHTML = `<div class="sheet-backdrop"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div></div>`;
+    const bd = root.firstElementChild;
+    const close = () => { root.innerHTML = ''; document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    bd.addEventListener('click', (e) => { if (e.target === bd || e.target.closest('[data-close]')) close(); });
+    document.addEventListener('keydown', onKey);
+    if (onMount) onMount(bd.firstElementChild, close);
+    return close;
+  };
+
+  K.copy = async (text, input) => {
+    try { await navigator.clipboard.writeText(text); K.toast('Link copied'); return true; }
+    catch (e) { if (input) { input.focus(); input.select(); } K.toast('Press and hold to copy'); return false; }
+  };
+
+  K.eventUrl = (ev) => `${location.origin}${location.pathname}#/event/${ev.id}`;
+
+  // "Jio a kaki": native share where the phone supports it, else a share sheet.
+  K.share = async (ev) => {
+    const url = K.eventUrl(ev);
+    const text = `Eh, jio you: ${ev.title}, ${K.fmtDate(ev.date)} ${K.fmtTime(ev.start)} at ${ev.mrt}. Free, sign up here:`;
+    const reward = () => { if (S.markShared(ev.id)) K.xpToast('Jio sent', K.XP.share); };
+    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+      try { await navigator.share({ title: ev.title, text, url }); reward(); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const msg = encodeURIComponent(`${text} ${url}`);
+    K.sheet(`
+      <h2>Jio a kaki</h2>
+      <p class="muted">Kakis who come with a friend are twice as likely to show up.</p>
+      <div class="share-grid">
+        <a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener" data-share><span class="ic" style="background:var(--lime)">${K.icon('chat')}</span>WhatsApp</a>
+        <a href="https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}" target="_blank" rel="noopener" data-share><span class="ic" style="background:var(--paper)">${K.icon('send')}</span>Telegram</a>
+        <button type="button" data-copy><span class="ic" style="background:var(--tomato)">${K.icon('link')}</span>Copy link</button>
+      </div>
+      <div class="copy-field"><input class="input" id="share-url" readonly value="${esc(url)}"></div>
+      <button class="btn" data-close>Done</button>`, (el) => {
+      K.qsa('[data-share]', el).forEach((a) => a.addEventListener('click', reward));
+      K.qs('[data-copy]', el).addEventListener('click', async () => { await K.copy(url, K.qs('#share-url', el)); reward(); });
+    });
+  };
+
+  /* ---------- Files ---------- */
+  K.downloadFile = (name, content, type) => {
+    const blob = content instanceof Blob ? content : new Blob([content], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  K.ics = (ev) => {
+    const f = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const clean = (s) => String(s || '').replace(/[,;\\]/g, (c) => '\\' + c).replace(/\n/g, '\\n');
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Kaypoh for Good//EN', 'BEGIN:VEVENT',
+      `UID:${ev.id}@kaypohforgood`, `DTSTAMP:${f(Date.now())}`, `DTSTART:${f(S.startTime(ev))}`, `DTEND:${f(S.endTime(ev))}`,
+      `SUMMARY:${clean(ev.title)}`, `LOCATION:${clean(ev.venue + ', ' + ev.address)}`,
+      `DESCRIPTION:${clean('Kaypoh for Good. Event details: ' + K.eventUrl(ev))}`,
+      'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  };
+
+  /* ---------- Images (organiser uploads) ---------- */
+  K.readImage = (file, max = 1400) => new Promise((resolve, reject) => {
+    if (!file || !/^image\//.test(file.type)) return reject(new Error('Choose an image file (JPG, PNG or WebP).'));
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That image could not be opened. Try another one.')); };
+    img.src = url;
+  });
+})(window.KFG);
